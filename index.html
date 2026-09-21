@@ -147,6 +147,9 @@
         
         .chart-bar { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-item.active { background-color: rgba(255,255,255,0.1); color: white; border-left: 3px solid #F6A23A; }
+
+        .schedule-badge { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
+        .schedule-time { color: #0F766E; }
     </style>
 </head>
 <body class="text-gray-800 antialiased overflow-x-hidden bg-[#F5F7F6] text-sm md:text-base">
@@ -160,12 +163,17 @@
             'IPS': { url: 'https://jsitolimpiade.com/', label: 'JSIT Olimpiade' },
             'MTK': { url: 'https://jsitolimpiade.com/', label: 'JSIT Olimpiade' },
             'SAINS': { url: 'https://jsitolimpiade.com/', label: 'JSIT Olimpiade' },
-            'B. Inggris': { url: 'https://procto.quippy-lab.com/onboardingv2', label: 'Quippy Lab' },
-            'B. Arab': { url: 'https://procto.quippy-lab.com/onboardingv2', label: 'Quippy Lab' }
+            'B. INGGRIS': { url: 'https://procto-web-dev.web.app/onboardingv2', label: 'Quippy Lab' },
+            'B. ARAB': { url: 'https://procto-web-dev.web.app/onboardingv2', label: 'Quippy Lab' }
         };
 
         function getPlatform(lombaName) {
             return PLATFORM_UJIAN[lombaName] || { url: '#', label: 'Platform Belum Ditentukan' };
+        }
+
+        function getParticipantExamUrl(peserta, lombaName) {
+            if (peserta && peserta.linkUjian) return peserta.linkUjian;
+            return getPlatform(lombaName).url;
         }
 
         /**
@@ -178,56 +186,161 @@
                 { id: 'SMPA', name: 'SMP IT Mentari Ilmu Azhari' }
             ],
             perlombaan: [
-                { id: 'L-01', name: 'Film Pendek', unit: 'Semua', icon: 'fa-clapperboard', color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', desc: 'Lomba kreativitas pembuatan film pendek dokumenter islami.', juknisUrl: '#' },
-                { id: 'L-02', name: 'B. Inggris', unit: 'Semua', icon: 'fa-language', color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', desc: 'Olimpiade kemampuan Bahasa Inggris (Story Telling & Speech).', juknisUrl: '#' },
-                { id: 'L-03', name: 'IPS', unit: 'SMPK', icon: 'fa-globe-asia', color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-200', desc: 'Olimpiade Ilmu Pengetahuan Sosial terintegrasi.', juknisUrl: '#' },
-                { id: 'L-04', name: 'MTK', unit: 'Semua', icon: 'fa-square-root-variable', color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', desc: 'Olimpiade Matematika tingkat nasional JSIT.', juknisUrl: '#' },
-                { id: 'L-05', name: 'SAINS', unit: 'Semua', icon: 'fa-flask', color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200', desc: 'Olimpiade Sains (IPA) terapan dan eksperimen.', juknisUrl: '#' },
-                { id: 'L-06', name: 'Lomba Futsal', unit: 'Semua', icon: 'fa-futbol', color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200', desc: 'Turnamen futsal antar sekolah Islam terpadu.', juknisUrl: '#' },
-                { id: 'L-07', name: 'Lomba Tahfidz', unit: 'SMPA', icon: 'fa-book-open-reader', color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200', desc: 'Musabaqah Hifdzil Quran dan tahsin.', juknisUrl: '#' },
-                { id: 'L-08', name: 'Lomba Robotik', unit: 'SMPK', icon: 'fa-robot', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', desc: 'Kompetisi perakitan dan pemrograman robot line follower.', juknisUrl: '#' },
-                { id: 'L-09', name: 'Lomba Koding', unit: 'SMPA', icon: 'fa-laptop-code', color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200', desc: 'Pemrograman aplikasi sederhana dan logika algoritma.', juknisUrl: '#' },
-                { id: 'L-10', name: 'Lomba Panahan', unit: 'Semua', icon: 'fa-bullseye', color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200', desc: 'Turnamen olahraga panahan tradisional dan standar.', juknisUrl: '#' }
+                { id: 'L-02', name: 'B. INGGRIS', unit: 'Semua', icon: 'fa-language', color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', desc: 'Olimpiade kemampuan Bahasa Inggris.', jadwal: 'Selasa, 22 September 2026', jam: '13.00 - 14.30', juknisUrl: '#' },
+                { id: 'L-03', name: 'IPS', unit: 'Semua', icon: 'fa-globe-asia', color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-200', desc: 'Olimpiade Ilmu Pengetahuan Sosial terintegrasi.', jadwal: 'Senin, 21 September 2026', jam: '13.00 - 14.30', juknisUrl: '#' },
+                { id: 'L-04', name: 'MTK', unit: 'Semua', icon: 'fa-square-root-variable', color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', desc: 'Olimpiade Matematika tingkat nasional JSIT.', jadwal: 'Kamis, 24 September 2026', jam: '13.00 - 14.30', juknisUrl: '#' },
+                { id: 'L-05', name: 'SAINS', unit: 'Semua', icon: 'fa-flask', color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200', desc: 'Olimpiade Sains (IPA) terapan dan eksperimen.', jadwal: 'Rabu, 23 September 2026', jam: '13.00 - 14.30', juknisUrl: '#' },
+                { id: 'L-11', name: 'B. ARAB', unit: 'Semua', icon: 'fa-language', color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200', desc: 'Olimpiade kemampuan Bahasa Arab.', jadwal: 'Senin, 22 September 2026', jam: '08.00 - 09.30', juknisUrl: '#' }
             ],
-            // Struktur Peserta Utama (Updated dengan Data JSIT)
             peserta: [
-                { id: 'PST-IPS-001', name: 'KALILA NADA SALSABILA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'kalila@mi.sch.id', jsitUsername: '5E05BB2', jsitPassword: '05BB6' },
-                { id: 'PST-IPS-002', name: 'RIZKY AINA PARAMITHA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'rizky@mi.sch.id', jsitUsername: '8372937', jsitPassword: '72940' },
-                { id: 'PST-IPS-003', name: 'ARSYAKAYLA AZKADINA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'arsyakayla@mi.sch.id', jsitUsername: '43C79B', jsitPassword: '5C79BA' },
-                { id: 'PST-IPS-004', name: 'NIDAA HANUUN PAWESTRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'nidaa@mi.sch.id', jsitUsername: '79CAFB', jsitPassword: 'CCAFC4' },
-                { id: 'PST-IPS-005', name: 'ATHIFA HANA HUMAIRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'athifa@mi.sch.id', jsitUsername: '4506D6', jsitPassword: 'A06D71' },
-                { id: 'PST-IPS-006', name: 'ILYAS FAHMI ARDHIANSYAH', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'ilyas@mi.sch.id', jsitUsername: '5B662D', jsitPassword: '4662DA' },
-                { id: 'PST-IPS-007', name: 'RIZALDY AGUSTINO RAMADHAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'rizaldy@mi.sch.id', jsitUsername: '835205', jsitPassword: '152059' },
-                { id: 'PST-IPS-008', name: 'SYAILENDRA ARTHUREZIO ATHARRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'syailendra@mi.sch.id', jsitUsername: '895C72', jsitPassword: '45C72A' },
-                { id: 'PST-IPS-009', name: 'MUHAMMAD NUR DZAKY ANWAR', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadnur@mi.sch.id', jsitUsername: '70D2F2', jsitPassword: 'AD2F2E' },
-                { id: 'PST-IPS-010', name: 'RAIHAN ABDURRAHMAN NAZHMI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'raihanabdurrahman@mi.sch.id', jsitUsername: '7F5C4', jsitPassword: '7F5C48' },
-                { id: 'PST-IPS-011', name: 'GUSTAF ALI AL HAFIZ', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'gustaf@mi.sch.id', jsitUsername: 'JSITI0956SMMY7', jsitPassword: 'Y1' },
-                { id: 'PST-IPS-012', name: 'MUHAMMAD ARSYAD RABBANI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadarsyad@mi.sch.id', jsitUsername: 'JSITI0957DQAVD', jsitPassword: '6' },
-                { id: 'PST-IPS-013', name: 'MUHAMAD AKSANUDIN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhamad@mi.sch.id', jsitUsername: 'JSITI09552BQFU', jsitPassword: 'Y' },
-                { id: 'PST-IPS-014', name: 'RAIHANAH ALIFAH FITRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'raihanah@mi.sch.id', jsitUsername: '7F8FA2', jsitPassword: 'B8FA2D' },
-                { id: 'PST-IPS-015', name: 'SHAFA AQILA AULIA NURZAMAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'shafaaqila@mi.sch.id', jsitUsername: '86482C', jsitPassword: 'E482D3' },
-                { id: 'PST-IPS-016', name: 'AFIFA DWI NUR AZKIYA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'afifa@mi.sch.id', jsitUsername: '3AC2E0', jsitPassword: '5C2E0A' },
-                { id: 'PST-IPS-017', name: 'ALIFIANDRA RAFISQI ARDIANSYAH SIAGIAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alifiandra@mi.sch.id', jsitUsername: '3F49F5', jsitPassword: 'E49F63' }
+                { id: 'PST-IPS-001', name: 'KALILA NADA SALSABILA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'kalila@mi.sch.id', jsitUsername: '5E05BB2', jsitPassword: '05BB6', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-002', name: 'RIZKY AINA PARAMITHA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'rizky@mi.sch.id', jsitUsername: '8372937', jsitPassword: '72940', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-003', name: 'ARSYAKAYLA AZKADINA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'arsyakayla@mi.sch.id', jsitUsername: '43C79B5', jsitPassword: 'C79BA', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-004', name: 'NIDAA HANUUN PAWESTRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'nidaa@mi.sch.id', jsitUsername: '79CAFBC', jsitPassword: 'CAFC4', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-005', name: 'ATHIFA HANA HUMAIRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'athifa@mi.sch.id', jsitUsername: '4506D6A', jsitPassword: '06D71', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-006', name: 'ILYAS FAHMI ARDHIANSYAH', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'ilyas@mi.sch.id', jsitUsername: '5B662D4', jsitPassword: '662DA', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-007', name: 'RIZALDY AGUSTINO RAMADHAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'rizaldy@mi.sch.id', jsitUsername: '8352051', jsitPassword: '52059', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-008', name: 'SYAILENDRA ARTHUREZIO ATHARRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'syailendra@mi.sch.id', jsitUsername: '895C724', jsitPassword: '5C72A', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-009', name: 'MUHAMMAD NUR DZAKY ANWAR', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadnur@mi.sch.id', jsitUsername: '70D2F2A', jsitPassword: 'D2F2E', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-010', name: 'RAIHAN ABDURRAHMAN NAZHMI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'raihanabdurrahman@mi.sch.id', jsitUsername: '7F5C47F', jsitPassword: '5C487', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-011', name: 'GUSTAF ALI AL HAFIZ', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'gustaf@mi.sch.id', jsitUsername: 'JSITI0956', jsitPassword: 'SMMY7Y', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-012', name: 'MUHAMMAD ARSYAD RABBANI', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhammadarsyad@mi.sch.id', jsitUsername: 'JSITI0957', jsitPassword: 'DQAVD6', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-013', name: 'MUHAMAD AKSANUDIN', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhamad@mi.sch.id', jsitUsername: 'JSITI0955', jsitPassword: '2BQFUY', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-014', name: 'RAIHANAH ALIFAH FITRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'raihanah@mi.sch.id', jsitUsername: '7F8FA2B', jsitPassword: '8FA2D', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-015', name: 'SHAFA AQILA AULIA NURZAMAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'shafaaqila@mi.sch.id', jsitUsername: '86482CE', jsitPassword: '482D3', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-016', name: 'AFIFA DWI NUR AZKIYA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'afifa@mi.sch.id', jsitUsername: '3AC2E05', jsitPassword: 'C2E0A', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-IPS-017', name: 'ALIFIANDRA RAFISQI ARDIANSYAH SIAGIAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alifiandra@mi.sch.id', jsitUsername: '3F49F5E', jsitPassword: '49F63', linkUjian: 'https://jsitolimpiade.com/', cabang: 'IPS' },
+                { id: 'PST-MTK-018', name: 'ALARIQ ZIKRY ALCHALIFY', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alariq@mi.sch.id', jsitUsername: '3E15CFA', jsitPassword: '15D00', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-019', name: 'ARSYAD RAYYAN ZULKARNAIN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'arsyad@mi.sch.id', jsitUsername: '43BC355', jsitPassword: 'BC35B', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-020', name: 'ZHAFIRA NOURA AZALEA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'zhafiranoura@mi.sch.id', jsitUsername: '8F9B179', jsitPassword: '9B17F', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-021', name: 'SHAQILLA KHANZA INNOVA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'shaqilla@mi.sch.id', jsitUsername: '8722281', jsitPassword: '2228A', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-022', name: 'MUHAMMAD MAURITS AL MUYASSAR', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadmaurits@mi.sch.id', jsitUsername: '703F50C', jsitPassword: '3F51E', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-023', name: 'MIKAIL SATYA WIBISONO', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'mikail@mi.sch.id', jsitUsername: '682CF97', jsitPassword: '2CF9E', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-024', name: 'UWAIS AL FARIZI HAIDAR ARSYAD', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'uwaisalfarizi@mi.sch.id', jsitUsername: '8BDA09C', jsitPassword: 'DA0A1', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-025', name: 'DEANDRA CASILDA IKHSANI ADHY', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'deandra@mi.sch.id', jsitUsername: '4BEA014', jsitPassword: 'EA019', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-026', name: 'AZKAYRA NUR KHAIRANA PUTRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'azkayra@mi.sch.id', jsitUsername: '46D95E5', jsitPassword: 'D95FF', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-027', name: 'HASKI PRATAMA', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'haski@mi.sch.id', jsitUsername: 'JSITM01094', jsitPassword: 'YUSZZ6', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-028', name: 'SHAKIRA NADHIFA KURNIAWAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'shakira@mi.sch.id', jsitUsername: '86E69C4', jsitPassword: 'E69CD', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-MTK-029', name: 'SATRIA KHATULISTIWA FADLI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'satria@mi.sch.id', jsitUsername: '85C1676', jsitPassword: 'C167A', linkUjian: 'https://jsitolimpiade.com/', cabang: 'MTK' },
+                { id: 'PST-SAINS-030', name: 'NIRVANA ADINDA AZWAR', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'nirvana@mi.sch.id', jsitUsername: '7A1F756', jsitPassword: '1F75E', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-031', name: 'FAUZAN AZHIMA ALFADIL', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'fauzan@mi.sch.id', jsitUsername: '537DFA7', jsitPassword: '7DFAE', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-032', name: 'KASTARA YAFIQ ADIYATMA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'kastara@mi.sch.id', jsitUsername: '5E9C3B1', jsitPassword: '9C3B6', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-033', name: 'ALYSSIANINDYA RAMADHANI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alyssianindya@mi.sch.id', jsitUsername: '4096EC8', jsitPassword: '96ECD', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-034', name: 'AQILAH FARAH AFIFAH', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'aqilah@mi.sch.id', jsitUsername: '4295C49', jsitPassword: '95C4F', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-035', name: 'ALIKA FARANISA PAMESTI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alikapamesti@mi.sch.id', jsitUsername: '3F566C7', jsitPassword: '566CD', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-036', name: 'SUARA FIDELA ADEEVA WIBOWO', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'suara@mi.sch.id', jsitUsername: '8882B86', jsitPassword: '82B8B', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-037', name: 'KEYRA PUTRI YUDIANTO', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'keyra@mi.sch.id', jsitUsername: '6046C37', jsitPassword: '46C3D', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-038', name: 'QIEZHEL ZANETA PRINAIA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'qiezhel@mi.sch.id', jsitUsername: '7CDC96D', jsitPassword: 'DC976', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-039', name: 'BILQIS SALSABILA AHMAD', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'bilqissalsabila@mi.sch.id', jsitUsername: '491A5D6', jsitPassword: '1A5E1', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-040', name: 'DZAKI AKMAL SETIADI', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'dzaki@mi.sch.id', jsitUsername: '5C5EB73', jsitPassword: 'A5EB78', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-041', name: 'MUHAMAD ZIDAN RUSMANTO', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhamadzidan@mi.sch.id', jsitUsername: '5D1A9A6', jsitPassword: 'A1A9AB', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-042', name: 'HAURA AZZAHRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'haura@mi.sch.id', jsitUsername: '597B69D', jsitPassword: '7B6A2', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-SAINS-043', name: 'MUHAMMAD RIZQI AKBAR', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadrizqi@mi.sch.id', jsitUsername: '720CDC1', jsitPassword: '0CDC7', linkUjian: 'https://jsitolimpiade.com/', cabang: 'SAINS' },
+                { id: 'PST-BEN-044', name: 'ALFIRA SONYA EKAPAKSI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alfirasonya@mi.sch.id', jsitUsername: 'alfirasonya@mi.sch.id', jsitPassword: 'WJDDYPKDOSE0TFVU', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=WJDDYPKDOSE0TFVU', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-045', name: 'AZKADINA DWISA ANDINI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'azkadina@mi.sch.id', jsitUsername: 'azkadina@mi.sch.id', jsitPassword: 'UXPZE18VIXONW12L', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=UXPZE18VIXONW12L', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-046', name: 'AZRIL REZKY ADHITAMA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'azril@mi.sch.id', jsitUsername: 'azril@mi.sch.id', jsitPassword: 'EP9DI532OHHLYMSH', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=EP9DI532OHHLYMSH', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-047', name: 'MUHAMMAD ALDYTH ALROYGIAN RUSTANDI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadaldyth@mi.sch.id', jsitUsername: 'muhammadaldyth@mi.sch.id', jsitPassword: 'NY44F0HQP2NBKWXU', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=NY44F0HQP2NBKWXU', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-048', name: 'FAYZA RAHMILLAH PRAMUDYA WARDANI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'fayza@mi.sch.id', jsitUsername: 'fayza@mi.sch.id', jsitPassword: 'M3JFV5A5Q423APII', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=M3JFV5A5Q423APII', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-049', name: 'ARKANATHA KHAFID BUDIAWAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'arkanatha@mi.sch.id', jsitUsername: 'arkanatha@mi.sch.id', jsitPassword: '8APA4A6194KHILNY', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=8APA4A6194KHILNY', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-050', name: 'ELVINO AASHIF HAZIQ', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'elvino@mi.sch.id', jsitUsername: 'elvino@mi.sch.id', jsitPassword: 'BUVR1LDH9PMTX7E2', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=BUVR1LDH9PMTX7E2', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-051', name: 'MAULA NAYYARA PRAWIRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'maulanayyara@mi.sch.id', jsitUsername: 'maulanayyara@mi.sch.id', jsitPassword: 'A0VGFJ9YTDZGJYAU', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=A0VGFJ9YTDZGJYAU', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-052', name: 'MOCHAMAD RIFQI AULIA YASIN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'mochamad@mi.sch.id', jsitUsername: 'mochamad@mi.sch.id', jsitPassword: 'CJGG2NBVVW9DSWLB', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=CJGG2NBVVW9DSWLB', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-053', name: 'KAISAR TANABATA KHAIRUL FAHMI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'kaisar@mi.sch.id', jsitUsername: 'kaisar@mi.sch.id', jsitPassword: 'USDQPHDIIQELG8LR', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=USDQPHDIIQELG8LR', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-054', name: 'REYFANI BERLIAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'reyfani@mi.sch.id', jsitUsername: 'reyfani@mi.sch.id', jsitPassword: '7Q230GGCPOMLK5GG', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=7Q230GGCPOMLK5GG', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-055', name: 'MUHAMMAD RIZKY', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadrizky@mi.sch.id', jsitUsername: 'muhammadrizky@mi.sch.id', jsitPassword: 'MM5UG6GNJTFBB41I', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=MM5UG6GNJTFBB41I', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-056', name: 'KHAERUNNISA ZAHRATUR RAHMAH', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'khaerunnisa@mi.sch.id', jsitUsername: 'khaerunnisa@mi.sch.id', jsitPassword: 'XWKGPW2BB0QK22OY', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=XWKGPW2BB0QK22OY', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-057', name: 'RAZITA NIYAZ HAIKAL', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'razita@mi.sch.id', jsitUsername: 'razita@mi.sch.id', jsitPassword: '5AF5NS6X8HAU64YM', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=5AF5NS6X8HAU64YM', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-058', name: 'PUTRI ALYA JULIANTI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'putrialya@mi.sch.id', jsitUsername: 'putrialya@mi.sch.id', jsitPassword: 'GKABV5P3BT315OHX', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=GKABV5P3BT315OHX', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-059', name: 'MUHAMMAD ELANG ABRAR JABBAR PERMANA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadelang@mi.sch.id', jsitUsername: 'muhammadelang@mi.sch.id', jsitPassword: 'JDVNNNZMIB3VLT99', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=JDVNNNZMIB3VLT99', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-060', name: 'FAISAL IMAMUL HAKIM', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'faisal@mi.sch.id', jsitUsername: 'faisal@mi.sch.id', jsitPassword: 'UAKXYHQZAQOBHP2S', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=UAKXYHQZAQOBHP2S', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-061', name: 'RAINSA DIAZ ALVARO', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'rainsa@mi.sch.id', jsitUsername: 'rainsa@mi.sch.id', jsitPassword: '3ZCVVU62A9PCEUDZ', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=3ZCVVU62A9PCEUDZ', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-062', name: 'MUHAMMAD IHSAN PRATAMA', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhammadhsan@mi.sch.id', jsitUsername: 'muhammadhsan@mi.sch.id', jsitPassword: 'JKLIL2DVAZ7V9MUH', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=JKLIL2DVAZ7V9MUH', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-063', name: 'MUHAMMAD FINO AL HAFIZH', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhammadfino@mi.sch.id', jsitUsername: 'muhammadfino@mi.sch.id', jsitPassword: '0TX937OOIVFUPAX7', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=0TX937OOIVFUPAX7', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-064', name: 'FARID MAULANA AL RASHEED', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'farid@mi.sch.id', jsitUsername: 'farid@mi.sch.id', jsitPassword: '368D91GN1O3UD8WK', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=368D91GN1O3UD8WK', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-065', name: 'ABDURRAHMAN EL-KAYYIS', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'abdurrahman@mi.sch.id', jsitUsername: 'abdurrahman@mi.sch.id', jsitPassword: 'NCBJEMR7FYYZROGH', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=NCBJEMR7FYYZROGH', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-066', name: 'OFIRA FAYZA ARDININGRUM', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'ofira@mi.sch.id', jsitUsername: 'ofira@mi.sch.id', jsitPassword: '4YMRT3TT0E3MDHYM', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=4YMRT3TT0E3MDHYM', cabang: 'B. INGGRIS' },
+                { id: 'PST-BEN-067', name: 'APRILIANI DANIA SALSABILA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'apriliani@mi.sch.id', jsitUsername: 'apriliani@mi.sch.id', jsitPassword: '5CZHO4XZPV3886AS', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=5CZHO4XZPV3886AS', cabang: 'B. INGGRIS' },
+                { id: 'PST-BAR-068', name: 'MUHAMMAD GUMILANG KURNIADI', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhammadgumilang@mi.sch.id', jsitUsername: 'muhammadgumilang@mi.sch.id', jsitPassword: 'RIGVEPW581BKNPQH', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=RIGVEPW581BKNPQH', cabang: 'B. ARAB' },
+                { id: 'PST-BAR-069', name: 'ALFAZ FAURAN ZAMMI KHUZAIN', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'alfaz@mi.sch.id', jsitUsername: 'alfaz@mi.sch.id', jsitPassword: 'IR9COM2RZNCRIG07', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=IR9COM2RZNCRIG07', cabang: 'B. ARAB' },
+                { id: 'PST-BAR-070', name: 'MUHAMMAD AYYASH', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhammadayyash@mi.sch.id', jsitUsername: 'muhammadayyash@mi.sch.id', jsitPassword: 'APB9FENG2UWT77HQ', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=APB9FENG2UWT77HQ', cabang: 'B. ARAB' },
+                { id: 'PST-BAR-071', name: 'ARSYIL NABHAN ABIDIN', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'arsyil@mi.sch.id', jsitUsername: 'arsyil@mi.sch.id', jsitPassword: 'DIX4XLWB06VSMKIB', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=DIX4XLWB06VSMKIB', cabang: 'B. ARAB' },
+                { id: 'PST-BAR-072', name: 'NABIEL FATHURRAHMAN ANNAFIS', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'nabiel@mi.sch.id', jsitUsername: 'nabiel@mi.sch.id', jsitPassword: 'GWQUJKNX57NMMNJQ', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=GWQUJKNX57NMMNJQ', cabang: 'B. ARAB' },
+                { id: 'PST-BAR-073', name: 'MUHAMMAD YASIRUL HAKKI SUTISNA', school: 'SMP IT Mentari Ilmu Azhari', unit: 'SMPA', email: 'muhammadyasirul@mi.sch.id', jsitUsername: 'muhammadyasirul@mi.sch.id', jsitPassword: '5R1QKZMX2ENAX479', linkUjian: 'https://procto-web-dev.web.app/onboardingv2?code=5R1QKZMX2ENAX479', cabang: 'B. ARAB' }
             ],
-            // Relasi Kepesertaan (Semua peserta di-assign ke IPS / L-03)
             kepesertaan: [
-                { id: 'KP-IPS-001', pesertaId: 'PST-IPS-001', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-002', pesertaId: 'PST-IPS-002', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-003', pesertaId: 'PST-IPS-003', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-004', pesertaId: 'PST-IPS-004', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-005', pesertaId: 'PST-IPS-005', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-006', pesertaId: 'PST-IPS-006', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-007', pesertaId: 'PST-IPS-007', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-008', pesertaId: 'PST-IPS-008', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-009', pesertaId: 'PST-IPS-009', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-010', pesertaId: 'PST-IPS-010', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-011', pesertaId: 'PST-IPS-011', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-012', pesertaId: 'PST-IPS-012', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-013', pesertaId: 'PST-IPS-013', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-014', pesertaId: 'PST-IPS-014', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-015', pesertaId: 'PST-IPS-015', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-016', pesertaId: 'PST-IPS-016', lombaId: 'L-03', status: 'Terverifikasi' },
-                { id: 'KP-IPS-017', pesertaId: 'PST-IPS-017', lombaId: 'L-03', status: 'Terverifikasi' }
+                { id: 'KP-001', pesertaId: 'PST-IPS-001', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-002', pesertaId: 'PST-IPS-002', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-003', pesertaId: 'PST-IPS-003', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-004', pesertaId: 'PST-IPS-004', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-005', pesertaId: 'PST-IPS-005', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-006', pesertaId: 'PST-IPS-006', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-007', pesertaId: 'PST-IPS-007', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-008', pesertaId: 'PST-IPS-008', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-009', pesertaId: 'PST-IPS-009', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-010', pesertaId: 'PST-IPS-010', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-011', pesertaId: 'PST-IPS-011', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-012', pesertaId: 'PST-IPS-012', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-013', pesertaId: 'PST-IPS-013', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-014', pesertaId: 'PST-IPS-014', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-015', pesertaId: 'PST-IPS-015', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-016', pesertaId: 'PST-IPS-016', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-017', pesertaId: 'PST-IPS-017', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-018', pesertaId: 'PST-MTK-018', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-019', pesertaId: 'PST-MTK-019', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-020', pesertaId: 'PST-MTK-020', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-021', pesertaId: 'PST-MTK-021', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-022', pesertaId: 'PST-MTK-022', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-023', pesertaId: 'PST-MTK-023', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-024', pesertaId: 'PST-MTK-024', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-025', pesertaId: 'PST-MTK-025', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-026', pesertaId: 'PST-MTK-026', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-027', pesertaId: 'PST-MTK-027', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-028', pesertaId: 'PST-MTK-028', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-029', pesertaId: 'PST-MTK-029', lombaId: 'L-04', status: 'Terverifikasi' },
+                { id: 'KP-030', pesertaId: 'PST-SAINS-030', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-031', pesertaId: 'PST-SAINS-031', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-032', pesertaId: 'PST-SAINS-032', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-033', pesertaId: 'PST-SAINS-033', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-034', pesertaId: 'PST-SAINS-034', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-035', pesertaId: 'PST-SAINS-035', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-036', pesertaId: 'PST-SAINS-036', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-037', pesertaId: 'PST-SAINS-037', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-038', pesertaId: 'PST-SAINS-038', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-039', pesertaId: 'PST-SAINS-039', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-040', pesertaId: 'PST-SAINS-040', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-041', pesertaId: 'PST-SAINS-041', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-042', pesertaId: 'PST-SAINS-042', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-043', pesertaId: 'PST-SAINS-043', lombaId: 'L-05', status: 'Terverifikasi' },
+                { id: 'KP-044', pesertaId: 'PST-BEN-044', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-045', pesertaId: 'PST-BEN-045', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-046', pesertaId: 'PST-BEN-046', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-047', pesertaId: 'PST-BEN-047', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-048', pesertaId: 'PST-BEN-048', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-049', pesertaId: 'PST-BEN-049', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-050', pesertaId: 'PST-BEN-050', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-051', pesertaId: 'PST-BEN-051', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-052', pesertaId: 'PST-BEN-052', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-053', pesertaId: 'PST-BEN-053', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-054', pesertaId: 'PST-BEN-054', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-055', pesertaId: 'PST-BEN-055', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-056', pesertaId: 'PST-BEN-056', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-057', pesertaId: 'PST-BEN-057', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-058', pesertaId: 'PST-BEN-058', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-059', pesertaId: 'PST-BEN-059', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-060', pesertaId: 'PST-BEN-060', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-061', pesertaId: 'PST-BEN-061', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-062', pesertaId: 'PST-BEN-062', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-063', pesertaId: 'PST-BEN-063', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-064', pesertaId: 'PST-BEN-064', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-065', pesertaId: 'PST-BEN-065', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-066', pesertaId: 'PST-BEN-066', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-067', pesertaId: 'PST-BEN-067', lombaId: 'L-02', status: 'Terverifikasi' },
+                { id: 'KP-068', pesertaId: 'PST-BAR-068', lombaId: 'L-11', status: 'Terverifikasi' },
+                { id: 'KP-069', pesertaId: 'PST-BAR-069', lombaId: 'L-11', status: 'Terverifikasi' },
+                { id: 'KP-070', pesertaId: 'PST-BAR-070', lombaId: 'L-11', status: 'Terverifikasi' },
+                { id: 'KP-071', pesertaId: 'PST-BAR-071', lombaId: 'L-11', status: 'Terverifikasi' },
+                { id: 'KP-072', pesertaId: 'PST-BAR-072', lombaId: 'L-11', status: 'Terverifikasi' },
+                { id: 'KP-073', pesertaId: 'PST-BAR-073', lombaId: 'L-11', status: 'Terverifikasi' }
             ],
             akun: [
                 { id: 'A-01', username: 'admin', password: '123456', role: 'ADMIN', nama: 'Administrator Utama', unit: 'Semua' },
@@ -237,11 +350,10 @@
                 { id: 'A-05', username: 'peserta02', password: '123456', role: 'PESERTA', nama: 'RIZKY AINA PARAMITHA', participantId: 'PST-IPS-002', unit: 'SMPK', jsitUsername: '8372937', jsitPassword: '72940' }
             ],
             pengumuman: [
-                { id: 'ANN-01', date: '21 September 2026', title: 'Data Peserta IPS Telah Tersedia', content: 'Username dan Password ujian untuk cabang lomba IPS sudah diaktifkan dan dapat dilihat pada direktori peserta. Pastikan peserta mengingat akun ujiannya masing-masing.', isNew: true },
-                { id: 'ANN-02', date: '14 September 2026', title: 'Jadwal Simulasi Lomba JSIT', content: 'Bagi seluruh peserta lomba, simulasi sistem JSIT akan dilaksanakan pada tanggal 23 September 2026 di Lab Komputer. Mohon bersiap.', isNew: false }
+                { id: 'ANN-01', date: '21 September 2026', title: 'Data Peserta Lomba Telah Diperbarui', content: 'Direktori peserta JSIT telah diperbarui dengan 73 peserta dari 5 cabang lomba: IPS, MTK, SAINS, B. Inggris, dan B. Arab. Username, password, dan link akses ujian ditampilkan pada direktori peserta.', isNew: true },
+                { id: 'ANN-02', date: '21 September 2026', title: 'Jadwal Simulasi Lomba JSIT', content: 'Bagi seluruh peserta lomba, simulasi sistem JSIT akan dilaksanakan pada tanggal 23 September 2026 di Lab Komputer. Mohon bersiap.', isNew: false }
             ]
         };
-
         // Normalization fallback (if any legacy data slips in)
         function normalizeLegacyData() {
             let kId = DATA.kepesertaan.length + 1;
@@ -1042,6 +1154,11 @@
                             <span id="modal-lomba-unit" class="bg-brand-50 text-brand-600 text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded uppercase font-bold tracking-wider">Unit</span>
                         </div>
                         <p id="modal-lomba-desc" class="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed">Deskripsi</p>
+                        <div class="schedule-badge rounded-xl p-2.5 mt-2 md:mt-3">
+                            <div class="flex items-center gap-2 text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider"><i class="fas fa-calendar-days"></i> Jadwal Pelaksanaan</div>
+                            <div id="modal-lomba-jadwal" class="font-bold text-[10px] md:text-xs mt-1">-</div>
+                            <div id="modal-lomba-jam" class="schedule-time font-extrabold text-[10px] md:text-xs mt-0.5"><i class="fas fa-clock mr-1"></i>-</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1402,6 +1519,11 @@
                         </div>
                         <h3 class="text-lg md:text-xl font-black text-gray-900 mb-1.5 md:mb-2 relative z-10">${lomba.name} <span class="text-[10px] md:text-xs text-gray-400 block font-normal font-mono">${lomba.id}</span></h3>
                         <p class="text-xs md:text-sm text-gray-500 line-clamp-2 mb-3 md:mb-4 h-8 md:h-10 font-medium relative z-10">${lomba.desc}</p>
+                        <div class="schedule-badge rounded-xl p-2.5 mb-3 md:mb-4 relative z-10">
+                            <div class="flex items-center gap-2 text-[9px] md:text-[10px] font-extrabold uppercase tracking-wider"><i class="fas fa-calendar-days"></i> Jadwal Pelaksanaan</div>
+                            <div class="font-bold text-[10px] md:text-xs mt-1">${lomba.jadwal || '-'}</div>
+                            <div class="schedule-time font-extrabold text-[10px] md:text-xs mt-0.5"><i class="fas fa-clock mr-1"></i>${lomba.jam || '-'}</div>
+                        </div>
                         <div class="mt-auto pt-3 md:pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
                             <span class="font-bold text-gray-900 text-xs md:text-sm">👥 ${pCount} Peserta</span>
                             <div class="text-[10px] md:text-xs font-bold text-brand-600 group-hover:text-brand-800 transition flex items-center gap-1">Detail <i class="fas fa-arrow-right -rotate-45 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i></div>
@@ -1416,6 +1538,8 @@
             if(!lomba) return;
             document.getElementById('modal-lomba-title').innerText = lomba.name;
             document.getElementById('modal-lomba-desc').innerText = lomba.desc;
+            document.getElementById('modal-lomba-jadwal').innerText = lomba.jadwal || '-';
+            document.getElementById('modal-lomba-jam').innerHTML = `<i class="fas fa-clock mr-1"></i>${lomba.jam || '-'}`;
             document.getElementById('modal-lomba-id').innerText = lomba.id;
             document.getElementById('modal-lomba-unit').innerText = (lomba.unit === 'Semua' && currentGlobalUnit !== 'Semua') ? currentGlobalUnit : lomba.unit;
             
@@ -1481,10 +1605,11 @@
             const lombaId = keps.length > 0 ? keps[0].lombaId : null;
             const l = lombaId ? getLombaById(lombaId) : null;
             const platform = getPlatform(l ? l.name : '');
+            const examUrl = getParticipantExamUrl(p, l ? l.name : '');
             
             document.getElementById('dpst-platform').innerText = platform.label;
-            document.getElementById('dpst-exam-url').href = platform.url;
-            if(platform.url === '#') document.getElementById('dpst-exam-url').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('dpst-exam-url').href = examUrl;
+            if(examUrl === '#') document.getElementById('dpst-exam-url').classList.add('opacity-50', 'pointer-events-none');
             else document.getElementById('dpst-exam-url').classList.remove('opacity-50', 'pointer-events-none');
             
             closeModal('detailLombaModal'); 
@@ -1549,6 +1674,7 @@
             paginatedData.forEach((row, idx) => {
                 const l = row.lomba;
                 const platform = getPlatform(l ? l.name : '');
+                const examUrl = getParticipantExamUrl(row.peserta, l ? l.name : '');
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50/80 transition text-xs md:text-sm">
@@ -1569,7 +1695,7 @@
                             </div>
                         </td>
                         <td class="px-3 md:px-5 py-3 whitespace-nowrap">
-                            <a href="${platform.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 bg-brand-600 text-white px-3 py-1.5 md:py-2 rounded md:rounded-lg text-[10px] md:text-xs font-bold hover:bg-brand-700 transition shadow-sm ${platform.url === '#' ? 'opacity-50 pointer-events-none' : ''}">
+                            <a href="${examUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 bg-brand-600 text-white px-3 py-1.5 md:py-2 rounded md:rounded-lg text-[10px] md:text-xs font-bold hover:bg-brand-700 transition shadow-sm ${examUrl === '#' ? 'opacity-50 pointer-events-none' : ''}">
                                 <i class="fas fa-laptop"></i> Buka Ujian
                             </a>
                         </td>
