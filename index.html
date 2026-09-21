@@ -1,46 +1,2284 @@
 <!DOCTYPE html>
-<html lang="id">
-
+<html lang="id" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SPMB</title>
-  <link rel="icon" href="https://mentariilmu.org/logo.png" />
-  <style>
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #eee;
-      overflow: hidden;
-      /* Mencegah scroll ganda */
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Perlombaan JSIT - Mentari Ilmu</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://mentariilmu.org/logo.png" type="image/png">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        // Updated to Hijau Mentari Ilmu theme
+                        brand: {
+                            50: '#E8F2F0',
+                            100: '#D3E5E2',
+                            200: '#B5D2CD',
+                            300: '#8FB9B2',
+                            400: '#5F958C',
+                            500: '#3A7A70',
+                            600: '#24665E',
+                            700: '#184D47',
+                            800: '#153F3A',
+                            900: '#113430',
+                            950: '#0D2F2B',
+                        },
+                        // Accent colors (Orange/Amber)
+                        accent: { 
+                            400: '#F6A23A', 
+                            500: '#F47A3C', 
+                            600: '#DD6330' 
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'slide-in': 'slideIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-    .iframe-container {
-      width: 100%;
-      height: 100dvh;
-      /* Menggunakan dvh agar pas di mobile browser */
-      overflow: hidden;
-    }
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
-    iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-  </style>
+    <style type="text/tailwindcss">
+        @layer base {
+            /* Responsive Typography Base */
+            html { font-size: 14px; }
+            @media (min-width: 768px) { html { font-size: 15px; } }
+            @media (min-width: 1280px) { html { font-size: 16px; } }
+            
+            h1, h2, h3, h4, h5, h6 { line-height: 1.25; }
+        }
+    </style>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F5F7F6; }
+        
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #113430 0%, #184D47 50%, #24665E 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(58, 122, 112, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(244, 122, 60, 0.15) 0%, transparent 20%),
+                radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 30px 30px;
+        }
+
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #3A7A70;
+        }
+
+        /* Sidebar Toggle Styles */
+        .sidebar { transition: width 0.3s ease, transform 0.3s ease; }
+        .sidebar-expanded { width: 16rem; } /* 64 */
+        .sidebar-collapsed { width: 5rem; } /* 20 */
+        .sidebar-collapsed .menu-text { display: none; }
+        .sidebar-collapsed .menu-icon { margin-left: auto; margin-right: auto; font-size: 1.25rem; }
+        .sidebar-collapsed .logo-text { display: none; }
+        
+        /* Tooltip for collapsed sidebar */
+        .menu-item { position: relative; }
+        .menu-item .tooltip {
+            visibility: hidden; opacity: 0; transition: opacity 0.2s;
+            position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+            margin-left: 0.5rem; background-color: #1e293b; color: #fff; text-align: center;
+            padding: 0.35rem 0.6rem; border-radius: 0.375rem; white-space: nowrap; font-size: 0.75rem;
+            pointer-events: none; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-collapsed .menu-item:hover .tooltip { visibility: visible; opacity: 1; }
+
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s ease-out; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.95) translateY(10px); opacity: 0; transition: all 0.3s ease-out; }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+        .toast { transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .toast.show { transform: translateX(0); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .chart-bar { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-item.active { background-color: rgba(255,255,255,0.1); color: white; border-left: 3px solid #F6A23A; }
+    </style>
 </head>
+<body class="text-gray-800 antialiased overflow-x-hidden bg-[#F5F7F6] text-sm md:text-base">
 
-<body>
-  <div class="iframe-container">
-    <iframe id="app" src="https://forms.gle/QkhL4SfovVjRC1cC6" scrolling="yes" allowfullscreen="true"
-      webkitallowfullscreen="true" mozallowfullscreen="true"
-      allow="fullscreen; camera; microphone; display-capture; geolocation;">
-    </iframe>
-  </div>
+    <script>
+        /**
+         * KONFIGURASI PLATFORM UJIAN BERDASARKAN CABANG LOMBA
+         * Mudah untuk dikembangkan jika ada lomba baru
+         */
+        const PLATFORM_UJIAN = {
+            'IPS': { url: 'https://jsitolimpiade.com/', label: 'JSIT Olimpiade' },
+            'MTK': { url: 'https://jsitolimpiade.com/', label: 'JSIT Olimpiade' },
+            'SAINS': { url: 'https://jsitolimpiade.com/', label: 'JSIT Olimpiade' },
+            'B. Inggris': { url: 'https://procto.quippy-lab.com/onboardingv2', label: 'Quippy Lab' },
+            'B. Arab': { url: 'https://procto.quippy-lab.com/onboardingv2', label: 'Quippy Lab' }
+        };
+
+        function getPlatform(lombaName) {
+            return PLATFORM_UJIAN[lombaName] || { url: '#', label: 'Platform Belum Ditentukan' };
+        }
+
+        /**
+         * DATA UTAMA PORTAL PERLOMBAAN JSIT
+         */
+        let DATA = {
+            unit: [
+                { id: 'Semua', name: 'Semua Unit' },
+                { id: 'SMPK', name: 'SMP IT Mentari Ilmu' },
+                { id: 'SMPA', name: 'SMP IT Mentari Ilmu Azhari' }
+            ],
+            perlombaan: [
+                { id: 'L-01', name: 'Film Pendek', unit: 'Semua', icon: 'fa-clapperboard', color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-200', desc: 'Lomba kreativitas pembuatan film pendek dokumenter islami.', juknisUrl: '#' },
+                { id: 'L-02', name: 'B. Inggris', unit: 'Semua', icon: 'fa-language', color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', desc: 'Olimpiade kemampuan Bahasa Inggris (Story Telling & Speech).', juknisUrl: '#' },
+                { id: 'L-03', name: 'IPS', unit: 'SMPK', icon: 'fa-globe-asia', color: 'text-green-600', bg: 'bg-green-100', border: 'border-green-200', desc: 'Olimpiade Ilmu Pengetahuan Sosial terintegrasi.', juknisUrl: '#' },
+                { id: 'L-04', name: 'MTK', unit: 'Semua', icon: 'fa-square-root-variable', color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', desc: 'Olimpiade Matematika tingkat nasional JSIT.', juknisUrl: '#' },
+                { id: 'L-05', name: 'SAINS', unit: 'Semua', icon: 'fa-flask', color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200', desc: 'Olimpiade Sains (IPA) terapan dan eksperimen.', juknisUrl: '#' },
+                { id: 'L-06', name: 'Lomba Futsal', unit: 'Semua', icon: 'fa-futbol', color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200', desc: 'Turnamen futsal antar sekolah Islam terpadu.', juknisUrl: '#' },
+                { id: 'L-07', name: 'Lomba Tahfidz', unit: 'SMPA', icon: 'fa-book-open-reader', color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200', desc: 'Musabaqah Hifdzil Quran dan tahsin.', juknisUrl: '#' },
+                { id: 'L-08', name: 'Lomba Robotik', unit: 'SMPK', icon: 'fa-robot', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200', desc: 'Kompetisi perakitan dan pemrograman robot line follower.', juknisUrl: '#' },
+                { id: 'L-09', name: 'Lomba Koding', unit: 'SMPA', icon: 'fa-laptop-code', color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200', desc: 'Pemrograman aplikasi sederhana dan logika algoritma.', juknisUrl: '#' },
+                { id: 'L-10', name: 'Lomba Panahan', unit: 'Semua', icon: 'fa-bullseye', color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200', desc: 'Turnamen olahraga panahan tradisional dan standar.', juknisUrl: '#' }
+            ],
+            // Struktur Peserta Utama (Updated dengan Data JSIT)
+            peserta: [
+                { id: 'PST-IPS-001', name: 'KALILA NADA SALSABILA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'kalila@mi.sch.id', jsitUsername: '5E05BB2', jsitPassword: '05BB6' },
+                { id: 'PST-IPS-002', name: 'RIZKY AINA PARAMITHA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'rizky@mi.sch.id', jsitUsername: '8372937', jsitPassword: '72940' },
+                { id: 'PST-IPS-003', name: 'ARSYAKAYLA AZKADINA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'arsyakayla@mi.sch.id', jsitUsername: '43C79B', jsitPassword: '5C79BA' },
+                { id: 'PST-IPS-004', name: 'NIDAA HANUUN PAWESTRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'nidaa@mi.sch.id', jsitUsername: '79CAFB', jsitPassword: 'CCAFC4' },
+                { id: 'PST-IPS-005', name: 'ATHIFA HANA HUMAIRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'athifa@mi.sch.id', jsitUsername: '4506D6', jsitPassword: 'A06D71' },
+                { id: 'PST-IPS-006', name: 'ILYAS FAHMI ARDHIANSYAH', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'ilyas@mi.sch.id', jsitUsername: '5B662D', jsitPassword: '4662DA' },
+                { id: 'PST-IPS-007', name: 'RIZALDY AGUSTINO RAMADHAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'rizaldy@mi.sch.id', jsitUsername: '835205', jsitPassword: '152059' },
+                { id: 'PST-IPS-008', name: 'SYAILENDRA ARTHUREZIO ATHARRA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'syailendra@mi.sch.id', jsitUsername: '895C72', jsitPassword: '45C72A' },
+                { id: 'PST-IPS-009', name: 'MUHAMMAD NUR DZAKY ANWAR', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadnur@mi.sch.id', jsitUsername: '70D2F2', jsitPassword: 'AD2F2E' },
+                { id: 'PST-IPS-010', name: 'RAIHAN ABDURRAHMAN NAZHMI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'raihanabdurrahman@mi.sch.id', jsitUsername: '7F5C4', jsitPassword: '7F5C48' },
+                { id: 'PST-IPS-011', name: 'GUSTAF ALI AL HAFIZ', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'gustaf@mi.sch.id', jsitUsername: 'JSITI0956SMMY7', jsitPassword: 'Y1' },
+                { id: 'PST-IPS-012', name: 'MUHAMMAD ARSYAD RABBANI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhammadarsyad@mi.sch.id', jsitUsername: 'JSITI0957DQAVD', jsitPassword: '6' },
+                { id: 'PST-IPS-013', name: 'MUHAMAD AKSANUDIN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'muhamad@mi.sch.id', jsitUsername: 'JSITI09552BQFU', jsitPassword: 'Y' },
+                { id: 'PST-IPS-014', name: 'RAIHANAH ALIFAH FITRI', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'raihanah@mi.sch.id', jsitUsername: '7F8FA2', jsitPassword: 'B8FA2D' },
+                { id: 'PST-IPS-015', name: 'SHAFA AQILA AULIA NURZAMAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'shafaaqila@mi.sch.id', jsitUsername: '86482C', jsitPassword: 'E482D3' },
+                { id: 'PST-IPS-016', name: 'AFIFA DWI NUR AZKIYA', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'afifa@mi.sch.id', jsitUsername: '3AC2E0', jsitPassword: '5C2E0A' },
+                { id: 'PST-IPS-017', name: 'ALIFIANDRA RAFISQI ARDIANSYAH SIAGIAN', school: 'SMP IT Mentari Ilmu', unit: 'SMPK', email: 'alifiandra@mi.sch.id', jsitUsername: '3F49F5', jsitPassword: 'E49F63' }
+            ],
+            // Relasi Kepesertaan (Semua peserta di-assign ke IPS / L-03)
+            kepesertaan: [
+                { id: 'KP-IPS-001', pesertaId: 'PST-IPS-001', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-002', pesertaId: 'PST-IPS-002', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-003', pesertaId: 'PST-IPS-003', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-004', pesertaId: 'PST-IPS-004', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-005', pesertaId: 'PST-IPS-005', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-006', pesertaId: 'PST-IPS-006', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-007', pesertaId: 'PST-IPS-007', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-008', pesertaId: 'PST-IPS-008', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-009', pesertaId: 'PST-IPS-009', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-010', pesertaId: 'PST-IPS-010', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-011', pesertaId: 'PST-IPS-011', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-012', pesertaId: 'PST-IPS-012', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-013', pesertaId: 'PST-IPS-013', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-014', pesertaId: 'PST-IPS-014', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-015', pesertaId: 'PST-IPS-015', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-016', pesertaId: 'PST-IPS-016', lombaId: 'L-03', status: 'Terverifikasi' },
+                { id: 'KP-IPS-017', pesertaId: 'PST-IPS-017', lombaId: 'L-03', status: 'Terverifikasi' }
+            ],
+            akun: [
+                { id: 'A-01', username: 'admin', password: '123456', role: 'ADMIN', nama: 'Administrator Utama', unit: 'Semua' },
+                { id: 'A-02', username: 'guru.smpk', password: '123456', role: 'GURU', nama: 'Bpk. Surya Pembina', unit: 'SMPK' },
+                { id: 'A-03', username: 'guru.smpa', password: '123456', role: 'GURU', nama: 'Ibu Ratna Pembina', unit: 'SMPA' },
+                { id: 'A-04', username: 'peserta01', password: '123456', role: 'PESERTA', nama: 'KALILA NADA SALSABILA', participantId: 'PST-IPS-001', unit: 'SMPK', jsitUsername: '5E05BB2', jsitPassword: '05BB6' },
+                { id: 'A-05', username: 'peserta02', password: '123456', role: 'PESERTA', nama: 'RIZKY AINA PARAMITHA', participantId: 'PST-IPS-002', unit: 'SMPK', jsitUsername: '8372937', jsitPassword: '72940' }
+            ],
+            pengumuman: [
+                { id: 'ANN-01', date: '21 September 2026', title: 'Data Peserta IPS Telah Tersedia', content: 'Username dan Password ujian untuk cabang lomba IPS sudah diaktifkan dan dapat dilihat pada direktori peserta. Pastikan peserta mengingat akun ujiannya masing-masing.', isNew: true },
+                { id: 'ANN-02', date: '14 September 2026', title: 'Jadwal Simulasi Lomba JSIT', content: 'Bagi seluruh peserta lomba, simulasi sistem JSIT akan dilaksanakan pada tanggal 23 September 2026 di Lab Komputer. Mohon bersiap.', isNew: false }
+            ]
+        };
+
+        // Normalization fallback (if any legacy data slips in)
+        function normalizeLegacyData() {
+            let kId = DATA.kepesertaan.length + 1;
+            DATA.peserta.forEach(p => {
+                if(p.lombaId) {
+                    if(!DATA.kepesertaan.find(k => k.pesertaId === p.id && k.lombaId === p.lombaId)) {
+                        DATA.kepesertaan.push({ id: `KP-${String(kId++).padStart(3,'0')}`, pesertaId: p.id, lombaId: p.lombaId, status: p.status || 'Terdaftar' });
+                    }
+                    delete p.lombaId; delete p.status;
+                }
+            });
+        }
+        normalizeLegacyData();
+
+        // Global States
+        let currentGlobalUnit = 'Semua';
+        let currentUser = null; 
+        let currentRole = null;
+        let currentUnit = null;
+        let isSidebarCollapsed = false;
+        let currentSection = 'dashboard';
+        let crudAction = null; 
+        let crudTargetId = null;
+        let crudType = null;
+        let dashJsitPass = '';
+        let isDashPassVisible = false;
+        let deleteTarget = null;
+        
+        // Pagination States
+        let dirCurrentPage = 1;
+        let dirItemsPerPage = 25;
+        let dirFilteredData = [];
+    </script>
+
+    <!-- PUBLIC VIEW -->
+    <div id="public-view" class="block">
+        
+        <!-- Navbar -->
+        <nav class="fixed w-full z-40 glass-nav transition-all duration-300 shadow-sm" id="navbar">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
+                    <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                        <img src="https://mentariilmu.org/logo.png" alt="Logo Mentari Ilmu" class="w-10 h-10 object-contain drop-shadow-sm">
+                        <div>
+                            <h1 class="text-lg md:text-xl font-bold text-brand-900 leading-tight">Mentari Ilmu</h1>
+                            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold tracking-widest uppercase">Portal Lomba JSIT</p>
+                        </div>
+                    </div>
+
+                    <div class="hidden lg:flex items-center space-x-8">
+                        <a href="#beranda" class="text-gray-600 hover:text-brand-600 font-semibold text-sm transition flex items-center gap-1.5"><i class="fas fa-house text-xs"></i> Beranda</a>
+                        <a href="#perlombaan" class="text-gray-600 hover:text-brand-600 font-semibold text-sm transition flex items-center gap-1.5"><i class="fas fa-trophy text-xs"></i> Perlombaan</a>
+                        <a href="#peserta" class="text-gray-600 hover:text-brand-600 font-semibold text-sm transition flex items-center gap-1.5"><i class="fas fa-users text-xs"></i> Peserta</a>
+                        <a href="#informasi" class="text-gray-600 hover:text-brand-600 font-semibold text-sm transition flex items-center gap-1.5"><i class="fas fa-bullhorn text-xs"></i> Pengumuman</a>
+                        <button onclick="openModal('loginModal')" class="bg-brand-900 hover:bg-brand-800 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition shadow-lg shadow-brand-900/30 flex items-center gap-2">
+                            <i class="fas fa-right-to-bracket"></i> Login Portal
+                        </button>
+                    </div>
+
+                    <div class="lg:hidden flex items-center">
+                        <button id="mobile-menu-btn" class="text-gray-600 hover:text-brand-900 focus:outline-none p-2 rounded-md hover:bg-gray-100">
+                            <i class="fas fa-bars text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-gray-100 shadow-xl absolute w-full pb-4 z-50">
+                <div class="px-4 pt-2 space-y-1">
+                    <a href="#beranda" class="block px-3 py-3 rounded-md text-base font-semibold text-gray-700 hover:text-brand-600 hover:bg-brand-50"><i class="fas fa-house mr-2 w-5"></i> Beranda</a>
+                    <a href="#perlombaan" class="block px-3 py-3 rounded-md text-base font-semibold text-gray-700 hover:text-brand-600 hover:bg-brand-50"><i class="fas fa-trophy mr-2 w-5"></i> Perlombaan</a>
+                    <a href="#peserta" class="block px-3 py-3 rounded-md text-base font-semibold text-gray-700 hover:text-brand-600 hover:bg-brand-50"><i class="fas fa-users mr-2 w-5"></i> Peserta</a>
+                    <a href="#informasi" class="block px-3 py-3 rounded-md text-base font-semibold text-gray-700 hover:text-brand-600 hover:bg-brand-50"><i class="fas fa-bullhorn mr-2 w-5"></i> Pengumuman</a>
+                    <div class="mt-4 px-3 pt-2 border-t border-gray-100">
+                        <button onclick="openModal('loginModal')" class="w-full bg-brand-900 text-white px-4 py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 shadow-md">
+                            <i class="fas fa-right-to-bracket"></i> Login Portal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <section id="beranda" class="hero-bg pt-32 pb-24 lg:pt-40 lg:pb-32 text-white relative">
+            <div class="hero-pattern z-0"></div>
+            
+            <div class="absolute top-1/4 right-10 w-64 h-64 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+            <div class="absolute bottom-1/4 left-10 w-72 h-72 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float-delayed"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="animate-slide-in">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 text-[10px] sm:text-xs font-bold tracking-wider uppercase shadow-sm">
+                            <span class="w-2 h-2 rounded-full bg-accent-400 animate-pulse"></span>
+                            Tahun Ajaran 2026/2027
+                        </div>
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 leading-tight text-white drop-shadow-md">
+                            PORTAL PERLOMBAAN JSIT <br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-yellow-200">MENTARI ILMU</span>
+                        </h1>
+                        <p class="mt-4 text-base md:text-lg text-blue-100 max-w-xl mb-8 font-medium border-l-4 border-accent-400 pl-4 bg-white/5 py-2 pr-4 rounded-r-lg leading-relaxed">
+                            Informasi resmi pendaftaran perlombaan, direktori peserta, dan akses akun/link ujian kompetisi JSIT.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="document.getElementById('perlombaan').scrollIntoView({behavior: 'smooth'})" class="bg-accent-500 hover:bg-accent-600 text-brand-950 px-6 py-3.5 rounded-xl font-bold transition shadow-lg shadow-accent-500/30 flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-trophy text-lg"></i> Eksplorasi Lomba
+                            </button>
+                            <button onclick="document.getElementById('peserta').scrollIntoView({behavior: 'smooth'})" class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white px-6 py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-users text-lg"></i> Cek Peserta
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="hidden lg:block relative">
+                        <div class="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl transform rotate-1 hover:rotate-0 transition duration-500">
+                            <div class="absolute -top-5 -right-5 w-20 h-20 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl rotate-12 flex items-center justify-center shadow-xl animate-float">
+                                <i class="fas fa-medal text-4xl text-white"></i>
+                            </div>
+                            
+                            <h3 class="text-2xl font-bold mb-4 text-white">Menuju Generasi Emas</h3>
+                            <div class="space-y-4">
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-brand-500/30 flex items-center justify-center text-brand-200 shrink-0">
+                                        <i class="fas fa-laptop-code text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">Sains & Teknologi</h4>
+                                        <p class="text-xs text-brand-200 mt-0.5">Koding, Robotik, MTK, IPA</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-emerald-500/30 flex items-center justify-center text-emerald-200 shrink-0">
+                                        <i class="fas fa-book-quran text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">Keislaman & Bahasa</h4>
+                                        <p class="text-xs text-emerald-200 mt-0.5">Tahfidz, B. Inggris, B. Arab</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-accent-500/30 flex items-center justify-center text-accent-200 shrink-0">
+                                        <i class="fas fa-bullseye text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">Keterampilan & Olahraga</h4>
+                                        <p class="text-xs text-accent-200 mt-0.5">Panahan, Futsal, Film Pendek</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-8 md:py-10 bg-[#F5F7F6] border-b border-gray-200 relative z-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Statistics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 -mt-16 md:-mt-20 mb-8 md:mb-10">
+                    <div class="bg-white rounded-2xl shadow-xl shadow-brand-900/5 p-4 md:p-6 text-center border border-gray-100 card-hover">
+                        <div class="w-8 h-8 md:w-10 md:h-10 mx-auto bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1" id="stat-lomba">0</div>
+                        <div class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Cabang Aktif</div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-xl shadow-brand-900/5 p-4 md:p-6 text-center border border-gray-100 card-hover">
+                        <div class="w-8 h-8 md:w-10 md:h-10 mx-auto bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <div class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1" id="stat-unit">0</div>
+                        <div class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Sekolah</div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-xl shadow-brand-900/5 p-4 md:p-6 text-center border border-gray-100 card-hover">
+                        <div class="w-8 h-8 md:w-10 md:h-10 mx-auto bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1" id="stat-peserta">0</div>
+                        <div class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Total Peserta Unik</div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-xl shadow-brand-900/5 p-4 md:p-6 text-center border border-gray-100 card-hover">
+                        <div class="w-8 h-8 md:w-10 md:h-10 mx-auto bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1" id="stat-kategori">0</div>
+                        <div class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Posisi Lomba Aktif</div>
+                    </div>
+                </div>
+
+                <!-- Global Unit Filter -->
+                <div class="text-center mt-6 md:mt-8">
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 md:mb-4"><i class="fas fa-filter"></i> Pilih Unit Informasi</h2>
+                    <div class="inline-flex flex-wrap justify-center bg-white rounded-xl p-1.5 shadow-sm border border-gray-200" id="global-unit-filters">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="perlombaan" class="py-16 md:py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3 flex items-center gap-3">
+                            <i class="fas fa-medal text-accent-500"></i> Cabang Perlombaan
+                        </h2>
+                        <p class="text-gray-600 max-w-2xl text-sm md:text-base leading-relaxed">Daftar cabang perlombaan JSIT yang didaftarkan. Klik pada kartu untuk melihat rincian dan peserta pada tiap cabang lomba.</p>
+                    </div>
+                    <div class="text-xs md:text-sm font-bold text-brand-700 bg-brand-50 px-4 py-2 rounded-lg border border-brand-200 shadow-sm flex items-center gap-2" id="lomba-unit-indicator">
+                        <i class="fas fa-layer-group"></i> Menampilkan: Semua Unit
+                    </div>
+                </div>
+
+                <!-- Competitions Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6" id="competitions-grid">
+                    <!-- Cards injected via JS -->
+                </div>
+                
+                <div id="empty-state-lomba" class="hidden text-center py-20 bg-[#F5F7F6] rounded-3xl border border-gray-200 border-dashed mt-6">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center text-gray-300 mx-auto text-3xl md:text-4xl mb-4 shadow-sm"><i class="fas fa-folder-open"></i></div>
+                    <h3 class="text-lg md:text-xl font-bold text-gray-700">Tidak ada perlombaan</h3>
+                    <p class="text-gray-500 mt-2 text-sm">Belum ada data perlombaan untuk unit yang dipilih.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="peserta" class="py-16 md:py-20 bg-[#F5F7F6] border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-10 gap-4">
+                    <div class="max-w-3xl">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3 flex items-center gap-3">
+                            <i class="fas fa-users-viewfinder text-brand-600"></i> Direktori Peserta
+                        </h2>
+                        <p class="text-gray-600 text-sm md:text-base leading-relaxed">
+                            Username dan password ujian peserta tersedia pada daftar peserta di portal ini. Pastikan setiap peserta hanya menggunakan akun yang telah ditetapkan untuk dirinya sendiri. 
+                            <br><span class="text-red-500 font-bold">Catatan: Jangan mengubah kredensial yang telah diberikan.</span>
+                        </p>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="exportPublicDirectory('xlsx')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition flex items-center gap-2"><i class="fas fa-file-excel"></i> Excel XLSX</button>
+                        <button onclick="exportPublicDirectory('pdf')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-xs md:text-sm font-bold shadow-sm transition flex items-center gap-2"><i class="fas fa-file-pdf"></i> PDF</button>
+                    </div>
+                </div>
+
+                <!-- Informasi Platform Card -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-extrabold text-brand-900 mb-1"><i class="fas fa-globe-asia"></i> JSIT Olimpiade</h4>
+                            <p class="text-xs text-gray-500 mb-3">Platform ujian resmi untuk cabang lomba <strong>IPS, Matematika & Sains</strong>.</p>
+                        </div>
+                        <a href="https://jsitolimpiade.com/" target="_blank" rel="noopener noreferrer" class="bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold py-2 px-4 rounded-lg text-xs flex items-center justify-center gap-2 transition border border-brand-200 w-full sm:w-auto self-start">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Buka Website Ujian
+                        </a>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-extrabold text-blue-900 mb-1"><i class="fas fa-language"></i> Quippy Lab</h4>
+                            <p class="text-xs text-gray-500 mb-3">Platform ujian resmi untuk cabang lomba <strong>Bahasa Inggris & Bahasa Arab</strong>.</p>
+                        </div>
+                        <a href="https://procto.quippy-lab.com/onboardingv2" target="_blank" rel="noopener noreferrer" class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2 px-4 rounded-lg text-xs flex items-center justify-center gap-2 transition border border-blue-200 w-full sm:w-auto self-start">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Buka Website Ujian Bahasa
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-200 mb-6 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+                            <input type="text" id="search-peserta" class="pl-11 block w-full rounded-xl border-gray-300 bg-[#F5F7F6] border px-4 py-3 text-sm focus:ring-brand-500 focus:border-brand-500 transition font-medium text-gray-900 placeholder-gray-400" placeholder="Cari Nama, Email, User...">
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-school text-gray-400"></i></div>
+                            <select id="filter-unit-peserta" class="pl-11 block w-full rounded-xl border-gray-300 bg-[#F5F7F6] border px-4 py-3 text-sm focus:ring-brand-500 focus:border-brand-500 transition cursor-pointer font-medium text-gray-700 appearance-none">
+                                <option value="all">Semua Unit</option><option value="SMPK">SMPK</option><option value="SMPA">SMPA</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i class="fas fa-chevron-down text-gray-400 text-xs"></i></div>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-trophy text-gray-400"></i></div>
+                            <select id="filter-lomba-peserta" class="pl-11 block w-full rounded-xl border-gray-300 bg-[#F5F7F6] border px-4 py-3 text-sm focus:ring-brand-500 focus:border-brand-500 transition cursor-pointer font-medium text-gray-700 appearance-none">
+                                <option value="all">Semua Perlombaan</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i class="fas fa-chevron-down text-gray-400 text-xs"></i></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center border-t border-gray-100 pt-4">
+                        <div class="flex items-center gap-2 text-xs md:text-sm text-gray-600 font-medium">
+                            <span>Tampilkan:</span>
+                            <select id="dir-items-per-page" class="border border-gray-300 rounded-lg bg-[#F5F7F6] px-2 py-1 focus:ring-brand-500">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>data per halaman</span>
+                        </div>
+                        <div id="dir-info" class="text-xs md:text-sm text-gray-500 font-medium">Menampilkan 0-0 dari 0 data</div>
+                    </div>
+                </div>
+
+                <!-- Table Peserta -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200" id="table-public-directory">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Peserta</th>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Cabang Lomba</th>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Password</th>
+                                    <th scope="col" class="px-3 md:px-5 py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Akses Ujian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peserta-table-body" class="bg-white divide-y divide-gray-100">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="empty-state-peserta" class="hidden text-center py-16 md:py-20 bg-white">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-[#F5F7F6] rounded-full flex items-center justify-center text-gray-300 mx-auto text-2xl md:text-3xl mb-4"><i class="fas fa-search"></i></div>
+                        <p class="text-gray-700 font-bold text-base md:text-lg">Data tidak ditemukan</p>
+                        <p class="text-gray-500 text-xs md:text-sm mt-1">Sesuaikan kembali kombinasi pencarian dan filter Anda.</p>
+                    </div>
+                    
+                    <!-- Pagination Controls -->
+                    <div class="bg-gray-50 px-4 md:px-6 py-3 md:py-4 border-t border-gray-200 flex justify-center sm:justify-end items-center" id="dir-pagination">
+                        <!-- Injected -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="informasi" class="py-16 md:py-20 bg-white border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <h3 class="text-xl md:text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600 shrink-0"><i class="fas fa-bullhorn"></i></div>
+                            Papan Pengumuman
+                        </h3>
+                        <div class="space-y-4" id="pengumuman-list"></div>
+                    </div>
+                    <div class="lg:col-span-1">
+                        <h3 class="text-xl md:text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-accent-50 rounded-lg flex items-center justify-center text-accent-500 shrink-0"><i class="fas fa-circle-info"></i></div>
+                            Informasi Penting
+                        </h3>
+                        <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 relative overflow-hidden">
+                            <i class="fas fa-quote-right absolute -bottom-4 -right-4 text-6xl text-gray-100"></i>
+                            <ul class="space-y-4 md:space-y-5 relative z-10 text-xs md:text-sm">
+                                <li class="flex items-start gap-3"><div class="mt-0.5 bg-brand-100 text-brand-600 rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[10px] shrink-0"><i class="fas fa-check"></i></div><span class="text-gray-700 leading-relaxed font-medium">Pendaftaran peserta ke sistem JSIT dikelola sepenuhnya oleh pihak sekolah.</span></li>
+                                <li class="flex items-start gap-3"><div class="mt-0.5 bg-brand-100 text-brand-600 rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[10px] shrink-0"><i class="fas fa-check"></i></div><span class="text-gray-700 leading-relaxed font-medium">Akun ujian kini bersifat <strong>terbuka di halaman direktori peserta</strong> untuk memudahkan akses.</span></li>
+                                <li class="flex items-start gap-3"><div class="mt-0.5 bg-brand-100 text-brand-600 rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[10px] shrink-0"><i class="fas fa-check"></i></div><span class="text-gray-700 leading-relaxed font-medium">Gunakan kredensial yang diberikan untuk login ke sistem perlombaan resmi JSIT.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Akun Call To Action -->
+        <section id="akun-cta" class="py-20 md:py-24 bg-brand-950 text-white relative overflow-hidden">
+            <div class="hero-pattern opacity-20"></div>
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white/10 rounded-2xl mb-6 md:mb-8 border border-white/20 backdrop-blur-sm shadow-2xl relative">
+                    <div class="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg"><i class="fas fa-info text-[8px] md:text-[10px]"></i></div>
+                    <i class="fas fa-id-card text-3xl md:text-4xl text-accent-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-4 md:mb-6 tracking-tight">Informasi <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-yellow-200">Akun Peserta</span></h2>
+                <p class="text-brand-100 text-sm sm:text-base md:text-xl max-w-2xl mx-auto leading-relaxed mb-6 font-medium">Username dan password ujian peserta tersedia secara publik pada daftar peserta di portal ini. Pastikan setiap peserta hanya menggunakan akun yang telah ditetapkan untuk dirinya sendiri.</p>
+                <div class="bg-red-500/20 border border-red-500/30 text-white p-4 md:p-5 rounded-xl max-w-2xl mx-auto mb-8 md:mb-10 text-xs md:text-sm text-left shadow-lg backdrop-blur-sm">
+                    <strong><i class="fas fa-exclamation-triangle text-red-400"></i> Catatan Penting:</strong> Jangan mengubah username atau password yang telah diberikan. Pastikan kredensial digunakan hanya untuk mengikuti perlombaan sesuai cabang masing-masing.
+                </div>
+                <button onclick="document.getElementById('peserta').scrollIntoView({behavior: 'smooth'})" class="bg-accent-500 hover:bg-accent-600 text-white font-extrabold text-base md:text-lg py-3.5 px-8 md:py-4 md:px-10 rounded-xl shadow-[0_0_40px_rgba(244,122,60,0.3)] transition hover:-translate-y-1 flex items-center justify-center gap-3 mx-auto w-full sm:w-auto">
+                    <i class="fas fa-users"></i> Lihat Direktori Peserta
+                </button>
+            </div>
+        </section>
+
+        <footer class="bg-white border-t border-gray-200 pt-12 md:pt-16 pb-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
+                    <div class="text-center md:text-left">
+                        <div class="flex items-center justify-center md:justify-start gap-3 mb-4">
+                            <img src="https://mentariilmu.org/logo.png" alt="Logo Mentari Ilmu" class="w-8 h-8 md:w-10 md:h-10 object-contain">
+                            <div>
+                                <h3 class="text-lg md:text-xl font-extrabold text-brand-900">Mentari Ilmu</h3>
+                                <p class="text-[9px] md:text-[10px] text-gray-500 font-bold tracking-widest uppercase">Portal Lomba JSIT</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-500 text-xs md:text-sm max-w-sm font-medium leading-relaxed">Pusat informasi resmi pendaftaran dan kepesertaan ajang perlombaan JSIT untuk unit SMPK & SMPA.</p>
+                    </div>
+                    <div class="text-center md:text-right flex flex-col justify-end h-full mt-auto">
+                        <p class="font-bold text-gray-800 text-xs md:text-sm mb-1">SMPK & SMPA Mentari Ilmu</p>
+                        <p class="text-[10px] md:text-xs text-gray-500 font-medium">Menuju Generasi Berprestasi.</p>
+                        <p class="mt-4 text-[10px] md:text-xs text-gray-400">&copy; 2026 Mentari Ilmu. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- UNIFIED DASHBOARD VIEW (Handles Admin, Guru, Peserta) -->
+    <div id="unified-dashboard-view" class="hidden min-h-screen bg-[#F5F7F6] flex-col md:flex-row">
+        <!-- Overlay for Mobile Sidebar -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-brand-950/80 backdrop-blur-sm z-40 hidden md:hidden" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Dynamic Sidebar -->
+        <aside id="app-sidebar" class="sidebar sidebar-expanded fixed md:sticky top-0 h-screen bg-brand-950 text-white z-50 flex flex-col flex-shrink-0 -translate-x-full md:translate-x-0 shadow-xl md:shadow-none">
+            <div class="p-5 md:p-6 border-b border-brand-800/50 flex items-center justify-between h-16 shrink-0">
+                <div class="flex items-center gap-3 overflow-hidden whitespace-nowrap cursor-pointer" onclick="handleLogout()" title="Kembali ke Portal">
+                    <img src="https://mentariilmu.org/logo.png" alt="Logo" class="w-8 h-8 object-contain bg-white rounded p-0.5 shrink-0">
+                    <div class="logo-text">
+                        <h2 class="text-sm font-bold leading-tight" id="sidebar-role-title">Dashboard</h2>
+                        <span class="text-[9px] font-bold text-accent-400 tracking-wider uppercase" id="sidebar-role-subtitle">Role</span>
+                    </div>
+                </div>
+                <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white p-2"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto sidebar-scroll py-4 md:py-6 px-3 space-y-1" id="sidebar-nav">
+                <!-- Injected via JS based on role -->
+            </nav>
+
+            <div class="p-4 border-t border-brand-800/50 shrink-0">
+                <button onclick="handleLogout()" class="menu-item w-full flex items-center gap-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white p-2.5 md:p-3 rounded-lg font-bold text-xs md:text-sm transition group">
+                    <i class="fas fa-right-from-bracket menu-icon w-5 text-center"></i> 
+                    <span class="menu-text whitespace-nowrap">Kembali ke Portal</span>
+                    <span class="tooltip">Keluar</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="flex-1 min-h-screen flex flex-col w-full overflow-x-hidden relative">
+            <!-- Header Bar -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm h-16 flex items-center justify-between px-4 sm:px-6 shrink-0">
+                <div class="flex items-center gap-3 md:gap-4 overflow-hidden">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-500 hover:text-brand-600 text-xl p-2 shrink-0"><i class="fas fa-bars"></i></button>
+                    <button onclick="toggleDesktopSidebar()" class="hidden md:block text-gray-500 hover:text-brand-600 text-xl p-2 shrink-0" title="Toggle Sidebar"><i class="fas fa-bars" id="desktop-toggle-icon"></i></button>
+                    <h1 class="text-base sm:text-lg md:text-xl font-extrabold text-gray-900 truncate" id="dash-header-title">Halaman Dashboard</h1>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs md:text-sm font-bold text-gray-900 leading-tight" id="dash-header-name">Nama User</p>
+                        <p class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest" id="dash-header-unit">UNIT</p>
+                    </div>
+                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-sm md:text-lg border border-brand-200 shrink-0"><i class="fas fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="p-4 sm:p-6 lg:p-8 flex-1 overflow-y-auto" id="dash-content-area">
+                <!-- *** SHARED/DYNAMIC ADMIN SECTIONS *** -->
+                <!-- Admin: Dashboard Stats -->
+                <div id="sec-admin-dashboard" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                        <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 border border-gray-200 shadow-sm flex items-center gap-3 md:gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg md:text-xl shrink-0"><i class="fas fa-trophy"></i></div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Lomba Aktif</p><h4 class="text-xl md:text-2xl font-black text-gray-900" id="stat-admin-lomba">0</h4></div>
+                        </div>
+                        <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 border border-gray-200 shadow-sm flex items-center gap-3 md:gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg md:text-xl shrink-0"><i class="fas fa-users"></i></div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Peserta Unik</p><h4 class="text-xl md:text-2xl font-black text-gray-900" id="stat-admin-peserta">0</h4></div>
+                        </div>
+                        <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 border border-gray-200 shadow-sm flex items-center gap-3 md:gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg md:text-xl shrink-0"><i class="fas fa-school"></i></div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Siswa SMPK</p><h4 class="text-xl md:text-2xl font-black text-gray-900" id="stat-admin-smpk">0</h4></div>
+                        </div>
+                        <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 border border-gray-200 shadow-sm flex items-center gap-3 md:gap-4">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg md:text-xl shrink-0"><i class="fas fa-school"></i></div>
+                            <div><p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase">Siswa SMPA</p><h4 class="text-xl md:text-2xl font-black text-gray-900" id="stat-admin-smpa">0</h4></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl md:rounded-2xl p-0 border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="p-4 md:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 class="text-sm md:text-base font-bold text-gray-900"><i class="fas fa-list-check text-gray-400 mr-2"></i> Ringkasan Perlombaan Aktif</h3>
+                        </div>
+                        <ul class="divide-y divide-gray-100 max-h-96 overflow-y-auto sidebar-scroll" id="list-admin-dashboard-lomba"></ul>
+                    </div>
+                </div>
+
+                <!-- Admin: Kelola Perlombaan -->
+                <div id="sec-admin-perlombaan" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4 bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="text-xs md:text-sm font-medium text-gray-600">Total: <strong class="text-brand-600" id="txt-admin-lomba-total">0</strong> Lomba</p>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="exportData('perlombaan', 'xlsx')" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-1.5"><i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Excel</span></button>
+                            <button onclick="exportData('perlombaan', 'pdf')" class="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-1.5"><i class="fas fa-file-pdf"></i> <span class="hidden sm:inline">PDF</span></button>
+                            <button onclick="openFormModal('perlombaan', 'add')" class="flex-1 sm:flex-none bg-brand-600 hover:bg-brand-700 text-white px-3 md:px-5 py-2 rounded-lg font-bold text-xs md:text-sm transition flex items-center justify-center gap-1.5 whitespace-nowrap"><i class="fas fa-plus"></i> Tambah</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="grid-admin-perlombaan"></div>
+                </div>
+
+                <!-- Admin: Kelola Peserta -->
+                <div id="sec-admin-peserta" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-200 shadow-sm">
+                        <div class="flex flex-col md:flex-row gap-3 md:gap-4 justify-between mb-4">
+                            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                                <button onclick="openFormModal('peserta', 'add')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-lg font-bold text-xs md:text-sm transition flex items-center justify-center gap-2 flex-1 sm:flex-none"><i class="fas fa-user-plus"></i> Tambah</button>
+                                <button onclick="exportData('peserta', 'xlsx')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 flex-1 sm:flex-none"><i class="fas fa-file-excel"></i> XLSX</button>
+                                <button onclick="exportData('peserta', 'pdf')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2.5 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 flex-1 sm:flex-none"><i class="fas fa-file-pdf"></i> PDF</button>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                <div class="relative flex-1 sm:w-56">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs md:text-sm"></i>
+                                    <input type="text" id="admin-search-peserta" oninput="renderAdminPeserta()" class="pl-9 block w-full rounded-lg border-gray-300 bg-gray-50 border px-3 py-2.5 text-xs md:text-sm focus:ring-brand-500" placeholder="Cari nama/ID...">
+                                </div>
+                                <select id="admin-filter-unit" onchange="renderAdminPeserta()" class="rounded-lg border-gray-300 bg-gray-50 border px-3 py-2.5 text-xs md:text-sm focus:ring-brand-500 font-medium w-full sm:w-32">
+                                    <option value="all">Semua Unit</option><option value="SMPK">SMPK</option><option value="SMPA">SMPA</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200" id="table-export-admin-peserta">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">ID</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Nama Peserta</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Sekolah & Unit</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Lomba Diikuti</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-right text-[10px] md:text-xs font-bold text-gray-500 uppercase">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-admin-peserta" class="bg-white divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin: Unit Sekolah -->
+                <div id="sec-admin-unit" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                        <h3 class="font-bold text-gray-900 text-sm md:text-base">Pengelolaan Unit</h3>
+                        <button onclick="dummyAction('Tambah Unit')" class="bg-brand-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm"><i class="fas fa-plus mr-1"></i> Tambah Unit</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" id="grid-admin-unit">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Admin: Pengumuman -->
+                <div id="sec-admin-pengumuman" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="flex justify-between items-center bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-200 shadow-sm">
+                        <h3 class="font-bold text-gray-900 text-sm md:text-base">Daftar Pengumuman</h3>
+                        <button onclick="openFormModal('pengumuman', 'add')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm shadow-sm transition"><i class="fas fa-plus mr-1"></i> Tambah</button>
+                    </div>
+                    <div class="space-y-3 md:space-y-4" id="list-admin-pengumuman"></div>
+                </div>
+
+                <!-- Admin: Akun JSIT -->
+                <div id="sec-admin-akun" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5">
+                        <div class="flex flex-col sm:flex-row justify-between gap-3 md:gap-4 mb-4">
+                            <p class="text-xs md:text-sm text-gray-600 font-medium">Kelola hak akses portal.</p>
+                            <div class="flex gap-2">
+                                <button onclick="exportData('akun', 'xlsx')" class="bg-green-600 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-bold shadow-sm transition"><i class="fas fa-file-excel"></i></button>
+                                <button onclick="exportData('akun', 'pdf')" class="bg-red-500 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-bold shadow-sm transition"><i class="fas fa-file-pdf"></i></button>
+                                <button onclick="openFormModal('akun', 'add')" class="bg-brand-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm shadow-sm transition whitespace-nowrap"><i class="fas fa-user-plus mr-1"></i> Tambah Akun</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200" id="table-export-admin-akun">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Nama/User</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Role/Unit</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">User Ujian</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Pass Ujian</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-right text-[10px] md:text-xs font-bold text-gray-500 uppercase">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-admin-akun" class="bg-white divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin: Laporan & Statistik -->
+                <div id="sec-admin-laporan" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                        <div class="bg-white rounded-xl md:rounded-2xl border border-gray-200 p-4 md:p-6 shadow-sm">
+                            <h3 class="text-sm md:text-base font-bold text-gray-900 mb-4 md:mb-5"><i class="fas fa-chart-bar text-brand-500 mr-2"></i> Kepadatan Peserta per Lomba</h3>
+                            <div class="space-y-3 md:space-y-4" id="chart-admin-lomba"></div>
+                        </div>
+                        <div class="bg-white rounded-xl md:rounded-2xl border border-gray-200 p-4 md:p-6 shadow-sm">
+                            <h3 class="text-sm md:text-base font-bold text-gray-900 mb-4 md:mb-5"><i class="fas fa-clipboard-list text-accent-500 mr-2"></i> Status Verifikasi Global</h3>
+                            <div class="space-y-3 md:space-y-4" id="chart-admin-status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- *** SHARED/DYNAMIC GURU SECTIONS *** -->
+                <!-- Guru: Dashboard -->
+                <div id="sec-guru-dashboard" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <div class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm text-center">
+                            <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Peserta Unit</p>
+                            <h4 class="text-2xl md:text-3xl font-black text-brand-600" id="stat-guru-peserta">0</h4>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm text-center">
+                            <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Lomba Diikuti</p>
+                            <h4 class="text-2xl md:text-3xl font-black text-brand-600" id="stat-guru-lomba">0</h4>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm text-center">
+                            <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Terverifikasi</p>
+                            <h4 class="text-2xl md:text-3xl font-black text-emerald-600" id="stat-guru-verif">0</h4>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm text-center">
+                            <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-1">Menunggu</p>
+                            <h4 class="text-2xl md:text-3xl font-black text-amber-500" id="stat-guru-wait">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guru: Peserta Bimbingan -->
+                <div id="sec-guru-peserta" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-200 shadow-sm">
+                        <div class="flex flex-col sm:flex-row gap-2 md:gap-3 mb-4">
+                            <div class="relative flex-1">
+                                <i class="fas fa-search absolute left-3 top-2.5 md:top-3 text-gray-400 text-xs md:text-sm"></i>
+                                <input type="text" id="guru-search-peserta" oninput="renderGuruParticipants()" class="pl-9 pr-4 py-2 md:py-2.5 border border-gray-300 rounded-lg text-xs md:text-sm w-full focus:ring-emerald-500" placeholder="Cari nama peserta...">
+                            </div>
+                            <select id="guru-filter-lomba" onchange="renderGuruParticipants()" class="rounded-lg border-gray-300 bg-gray-50 border px-3 py-2 md:py-2.5 text-xs md:text-sm focus:ring-emerald-500 font-medium">
+                                <option value="all">Semua Lomba</option>
+                            </select>
+                        </div>
+                        <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Nama Peserta</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase">Lomba Diikuti</th>
+                                        <th class="px-3 md:px-4 py-2.5 md:py-3 text-right text-[10px] md:text-xs font-bold text-gray-500 uppercase">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-guru-peserta" class="bg-white divide-y divide-gray-100 text-xs md:text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guru: Info Lomba -->
+                <div id="sec-guru-lomba" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="grid-guru-lomba"></div>
+                </div>
+
+                <!-- *** SHARED/DYNAMIC PESERTA SECTIONS *** -->
+                <!-- Peserta: Dashboard (Profil & Lomba) -->
+                <div id="sec-peserta-dashboard" class="dash-section hidden space-y-4 md:space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                        <!-- Profil Card -->
+                        <div class="lg:col-span-1">
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative group">
+                                <div class="h-24 md:h-28 bg-gradient-to-br from-brand-600 to-brand-900 relative">
+                                    <div class="hero-pattern opacity-20 absolute inset-0"></div>
+                                    <div class="absolute top-3 md:top-4 right-3 md:right-4 bg-black/20 backdrop-blur-md text-white text-[9px] md:text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest border border-white/20">PESERTA</div>
+                                </div>
+                                <div class="px-5 md:px-6 pb-5 md:pb-6 relative text-center sm:text-left">
+                                    <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl border-4 border-white shadow-xl flex items-center justify-center text-3xl md:text-4xl text-gray-300 absolute -top-8 md:-top-10 left-1/2 sm:left-6 transform -translate-x-1/2 sm:translate-x-0">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="mt-10 md:mt-12">
+                                        <h2 class="text-lg md:text-xl font-extrabold text-gray-900" id="pst-profile-name">Nama</h2>
+                                        <p class="text-[10px] md:text-xs text-gray-500 font-medium mt-1 font-mono bg-gray-100 inline-block px-2 py-0.5 rounded border border-gray-200" id="pst-profile-id">ID</p>
+                                    </div>
+                                    <div class="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-gray-100 space-y-2 md:space-y-3 text-left">
+                                        <div><span class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Sekolah</span><span class="text-xs md:text-sm font-bold text-gray-800" id="pst-profile-school">-</span></div>
+                                        <div><span class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Unit</span><span class="inline-block mt-0.5 bg-brand-50 text-brand-700 text-[10px] md:text-xs px-2 py-0.5 rounded font-bold border border-brand-100" id="pst-profile-unit">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-4 md:space-y-6">
+                            <!-- Akun JSIT Kredensial -->
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                                <div class="flex items-center gap-2 mb-3 md:mb-4">
+                                    <i class="fas fa-shield-halved text-brand-600 text-base md:text-lg"></i>
+                                    <h3 class="text-sm md:text-base font-extrabold text-gray-900">Kredensial Ujian</h3>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-200 p-3 md:p-4 rounded-xl flex items-start gap-2 md:gap-3 mb-4 md:mb-5">
+                                    <i class="fas fa-info-circle text-blue-600 mt-0.5 text-base md:text-lg"></i>
+                                    <div>
+                                        <p class="text-xs md:text-sm font-bold text-blue-900 mb-0.5">Informasi Akun</p>
+                                        <p class="text-[10px] md:text-xs text-blue-800 leading-relaxed">Gunakan kredensial ini untuk login ke sistem ujian CBT sesuai cabang lomba.</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                                    <div class="border border-gray-200 rounded-xl p-3 md:p-4 bg-gray-50">
+                                        <span class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Username Ujian</span>
+                                        <div class="font-mono text-gray-900 font-bold text-sm md:text-base bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-inner flex justify-between items-center">
+                                            <span id="pst-jsit-user" class="select-all truncate mr-2">username</span>
+                                            <button onclick="copyToClipboard('pst-jsit-user')" class="text-gray-400 hover:text-brand-600 transition p-1"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="border border-gray-200 rounded-xl p-3 md:p-4 bg-gray-50">
+                                        <span class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Password Ujian</span>
+                                        <div class="flex justify-between items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-inner">
+                                            <div class="font-mono text-gray-900 font-bold text-sm md:text-base tracking-widest transition-all select-all flex-1 truncate" id="pst-jsit-pass">••••••••</div>
+                                            <div class="flex gap-1 md:gap-2 shrink-0">
+                                                <button onclick="copyToClipboard('pst-jsit-pass', true)" class="text-gray-400 hover:text-brand-600 transition p-1"><i class="fas fa-copy"></i></button>
+                                                <button onclick="togglePstPassword()" class="text-gray-400 hover:text-brand-600 transition p-1" id="pst-btn-toggle-pass"><i class="fas fa-eye"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lomba Detail (Multiple) -->
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                                <h3 class="text-sm md:text-base font-extrabold text-gray-900 mb-3 md:mb-4 flex items-center gap-2"><i class="fas fa-medal text-accent-500"></i> Perlombaan Anda</h3>
+                                <div id="pst-list-lomba" class="space-y-3 md:space-y-4">
+                                    <!-- Injected -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals (Outside Main Views) -->
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-[100] flex items-center justify-center modal-overlay px-4">
+        <div class="absolute inset-0 bg-brand-950/80 backdrop-blur-sm transition-opacity" onclick="closeModal('loginModal')"></div>
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-sm md:max-w-md z-10 overflow-hidden modal-content border border-gray-100">
+            <div class="px-5 md:px-6 pt-6 md:pt-8 pb-5 md:pb-6 text-center border-b border-gray-100 bg-gray-50 relative">
+                <button onclick="closeModal('loginModal')" class="absolute top-3 md:top-4 right-3 md:right-4 text-gray-400 hover:text-gray-600 bg-gray-200/50 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+                <div class="w-12 h-12 md:w-16 md:h-16 bg-brand-100 rounded-xl md:rounded-2xl flex items-center justify-center text-brand-600 mx-auto mb-3 md:mb-4 text-2xl md:text-3xl shadow-sm border border-brand-200 transform -rotate-3"><i class="fas fa-right-to-bracket rotate-3"></i></div>
+                <h3 class="text-xl md:text-2xl font-extrabold text-gray-900">Login Portal</h3>
+                <p class="text-xs md:text-sm text-gray-500 mt-1 font-medium">Akses informasi dasbor Anda.</p>
+            </div>
+            <form id="login-form" class="px-5 md:px-6 py-5 md:py-6" onsubmit="executeLogin(event)">
+                <div class="mb-4 md:mb-5 bg-blue-50 text-blue-800 text-[10px] md:text-xs p-3 rounded-xl border border-blue-200 flex items-start gap-2.5 md:gap-3">
+                    <i class="fas fa-circle-info text-blue-600 mt-0.5 text-xs md:text-sm"></i>
+                    <div>
+                        <strong class="block mb-1 text-blue-900">Simulasi Akun (Pass: 123456)</strong>
+                        <ul class="list-disc pl-3 md:pl-4 space-y-0.5 text-blue-700/80">
+                            <li>Admin: <strong>admin</strong></li>
+                            <li>Guru: <strong>guru.smpk</strong> / <strong>guru.smpa</strong></li>
+                            <li>Peserta: <strong>peserta01</strong> / <strong>peserta02</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mb-3 md:mb-4">
+                    <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1 md:mb-1.5">Username Portal</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-user text-gray-400 text-xs md:text-sm"></i></div>
+                        <input type="text" id="login-username" required class="pl-9 md:pl-10 block w-full rounded-lg md:rounded-xl border-gray-300 bg-gray-50 border px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm focus:ring-brand-500 transition" placeholder="Masukkan username">
+                    </div>
+                </div>
+                <div class="mb-5 md:mb-6">
+                    <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1 md:mb-1.5">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-lock text-gray-400 text-xs md:text-sm"></i></div>
+                        <input type="password" id="login-password" required class="pl-9 md:pl-10 block w-full rounded-lg md:rounded-xl border-gray-300 bg-gray-50 border px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm focus:ring-brand-500 transition" placeholder="••••••••">
+                    </div>
+                </div>
+                <div id="login-error" class="hidden mb-4 md:mb-5 p-2.5 md:p-3 bg-red-50 text-red-600 text-[10px] md:text-xs rounded-lg md:rounded-xl border border-red-200 flex items-center gap-2 font-bold">
+                    <i class="fas fa-circle-exclamation"></i><span>Kredensial tidak valid.</span>
+                </div>
+                <button type="submit" id="btn-login-submit" class="w-full bg-brand-900 hover:bg-brand-800 text-white font-extrabold py-3 md:py-3.5 px-4 rounded-lg md:rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                    <span>Masuk Sistem</span><i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Perlombaan Modal (Dinamis) -->
+    <div id="detailLombaModal" class="fixed inset-0 z-[90] flex items-center justify-center modal-overlay px-4 py-4 md:py-8">
+        <div class="absolute inset-0 bg-brand-950/60 backdrop-blur-sm transition-opacity" onclick="closeModal('detailLombaModal')"></div>
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-lg md:max-w-xl z-10 overflow-hidden modal-content flex flex-col max-h-full">
+            <div class="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0 z-20 shrink-0">
+                <h3 class="text-sm md:text-base font-extrabold text-gray-900">Detail Lomba</h3>
+                <div class="flex gap-2">
+                    <button id="btn-admin-add-pst" class="hidden text-xs font-bold bg-brand-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-brand-700 transition" onclick="openAddPesertaToLombaModal()"><i class="fas fa-user-plus mr-1"></i> Tambah</button>
+                    <button onclick="closeModal('detailLombaModal')" class="text-gray-400 hover:text-gray-600 bg-gray-200/50 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="px-4 md:px-6 py-4 md:py-5 overflow-y-auto flex-1 sidebar-scroll">
+                <div class="flex items-start gap-3 md:gap-4 mb-4 md:mb-5">
+                    <div id="modal-lomba-icon-container" class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl shadow-sm shrink-0 border">
+                        <i id="modal-lomba-icon" class="fas fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h4 id="modal-lomba-title" class="text-lg md:text-2xl font-black text-gray-900 leading-tight mb-1">Nama Lomba</h4>
+                        <div class="flex flex-wrap gap-1 md:gap-1.5 mb-1.5 md:mb-2">
+                            <span id="modal-lomba-id" class="bg-gray-100 text-gray-600 text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded font-mono font-bold tracking-wider">ID</span>
+                            <span id="modal-lomba-unit" class="bg-brand-50 text-brand-600 text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded uppercase font-bold tracking-wider">Unit</span>
+                        </div>
+                        <p id="modal-lomba-desc" class="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed">Deskripsi</p>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 border border-gray-100 rounded-xl md:rounded-2xl p-3 md:p-4 flex justify-between items-center mb-4 md:mb-5">
+                    <div>
+                        <span class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Total Peserta Unik</span>
+                        <span id="modal-lomba-count" class="font-black text-brand-600 text-lg md:text-xl">0</span>
+                    </div>
+                    <div class="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm border border-gray-100"><i class="fas fa-users text-sm md:text-base"></i></div>
+                </div>
+                
+                <h5 class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Daftar Peserta</h5>
+                <div class="border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm mb-4 md:mb-5">
+                    <ul id="modal-lomba-peserta-list" class="divide-y divide-gray-50 text-xs md:text-sm max-h-48 overflow-y-auto sidebar-scroll">
+                        <!-- Injected -->
+                    </ul>
+                </div>
+            </div>
+            <div class="px-4 md:px-5 py-3 md:py-4 border-t border-gray-100 bg-white shrink-0 flex flex-col sm:flex-row gap-2 md:gap-3">
+                <button id="modal-btn-juknis" class="flex-1 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-file-pdf"></i> Lihat Juknis Perlombaan
+                </button>
+                <button onclick="closeModal('detailLombaModal')" class="sm:flex-none w-full sm:w-24 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Participant Detail Modal -->
+    <div id="detailPesertaModal" class="fixed inset-0 z-[95] flex items-center justify-center modal-overlay px-4 py-4 md:py-8">
+        <div class="absolute inset-0 bg-brand-950/60 backdrop-blur-sm transition-opacity" onclick="closeModal('detailPesertaModal')"></div>
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-md z-10 overflow-hidden modal-content flex flex-col max-h-full">
+            <div class="px-4 md:px-5 py-3 md:py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <h3 class="text-sm md:text-base font-extrabold text-gray-900">Detail Peserta</h3>
+                <button onclick="closeModal('detailPesertaModal')" class="text-gray-400 hover:text-gray-600 bg-gray-200/50 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="px-5 md:px-6 py-5 md:py-6 text-center overflow-y-auto sidebar-scroll flex-1">
+                <div class="w-12 h-12 md:w-16 md:h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3 text-xl md:text-2xl shadow-sm border border-brand-100"><i class="fas fa-user-graduate"></i></div>
+                <h4 id="dpst-name" class="text-base md:text-lg font-black text-gray-900 mb-1">Nama</h4>
+                <p id="dpst-email" class="text-[10px] md:text-xs font-bold text-gray-500 mb-3 md:mb-4">Email</p>
+                
+                <div class="text-left mt-4 border-t border-gray-100 pt-4">
+                    <h5 class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Akun Ujian</h5>
+                    <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-2">
+                        <span class="text-xs md:text-sm font-bold text-gray-600">Username</span>
+                        <div class="flex items-center gap-2">
+                            <span id="dpst-user" class="font-mono text-sm font-bold bg-white px-2 py-1 border rounded shadow-inner">...</span>
+                            <button onclick="copyToClipboard('dpst-user')" class="text-brand-600 hover:text-brand-800 p-1 bg-white border rounded shadow-sm"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-4">
+                        <span class="text-xs md:text-sm font-bold text-gray-600">Password</span>
+                        <div class="flex items-center gap-2">
+                            <span id="dpst-pass" class="font-mono text-sm font-bold bg-white px-2 py-1 border rounded shadow-inner">...</span>
+                            <button onclick="copyToClipboard('dpst-pass')" class="text-brand-600 hover:text-brand-800 p-1 bg-white border rounded shadow-sm"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <h5 class="text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Platform Ujian</h5>
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+                        <span id="dpst-platform" class="block font-black text-blue-900 mb-2 text-sm md:text-base">JSIT Olimpiade</span>
+                        <a id="dpst-exam-url" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex justify-center items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs md:text-sm w-full shadow-sm transition">
+                            <i class="fas fa-laptop"></i> BUKA WEBSITE UJIAN
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic CRUD Modal (Dynamic Forms injected here) -->
+    <div id="crudModal" class="fixed inset-0 z-[100] flex items-center justify-center modal-overlay px-4 py-4 md:py-6">
+        <div class="absolute inset-0 bg-brand-950/80 backdrop-blur-sm transition-opacity" onclick="closeModal('crudModal')"></div>
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-lg z-10 overflow-hidden modal-content flex flex-col max-h-full">
+            <div class="px-5 md:px-6 py-3 md:py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <h3 class="text-sm md:text-base font-extrabold text-gray-900" id="crud-modal-title">Form Data</h3>
+                <button type="button" onclick="closeModal('crudModal')" class="text-gray-400 hover:text-gray-600 bg-gray-200/50 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="crud-form" class="flex flex-col flex-1 overflow-hidden" onsubmit="saveCrudData(event)">
+                <div class="px-5 md:px-6 py-4 md:py-5 overflow-y-auto sidebar-scroll flex-1 space-y-3 md:space-y-4" id="crud-modal-body">
+                    <!-- Form fields injected by JS -->
+                </div>
+                <div class="px-5 md:px-6 py-3 md:py-4 border-t border-gray-100 bg-white shrink-0 flex justify-end gap-2 md:gap-3">
+                    <button type="button" onclick="closeModal('crudModal')" class="bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition">Batal</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm shadow-sm transition">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Peserta To Lomba Modal -->
+    <div id="addPesertaLombaModal" class="fixed inset-0 z-[105] flex items-center justify-center modal-overlay px-4 py-4 md:py-6">
+        <div class="absolute inset-0 bg-brand-950/80 backdrop-blur-sm transition-opacity" onclick="closeModal('addPesertaLombaModal')"></div>
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-md z-10 overflow-hidden modal-content flex flex-col max-h-full">
+            <div class="px-5 md:px-6 py-3 md:py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <h3 class="text-sm md:text-base font-extrabold text-gray-900 truncate pr-2">Tambah ke <span id="apl-lomba-name" class="text-brand-600">Lomba</span></h3>
+                <button onclick="closeModal('addPesertaLombaModal')" class="text-gray-400 hover:text-gray-600 bg-gray-200/50 hover:bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center transition shrink-0"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="px-5 md:px-6 py-4 flex flex-col flex-1 overflow-hidden">
+                <input type="hidden" id="apl-lomba-id">
+                <div class="relative mb-3 shrink-0">
+                    <i class="fas fa-search absolute left-3 top-2.5 md:top-3 text-gray-400 text-xs md:text-sm"></i>
+                    <input type="text" id="apl-search" oninput="renderAplList()" class="pl-9 block w-full rounded-lg md:rounded-xl border-gray-300 bg-gray-50 border px-3 py-2 md:py-2.5 text-xs md:text-sm focus:ring-brand-500" placeholder="Cari peserta...">
+                </div>
+                <div class="flex justify-between items-center mb-2 shrink-0">
+                    <span class="text-[10px] md:text-xs font-bold text-gray-500">Pilih Peserta:</span>
+                    <button type="button" onclick="aplSelectAll()" class="text-[10px] md:text-xs font-bold text-brand-600 hover:underline">Pilih Semua</button>
+                </div>
+                <div class="border border-gray-200 rounded-lg md:rounded-xl overflow-y-auto flex-1 sidebar-scroll p-1" id="apl-list">
+                    <!-- Checkboxes injected -->
+                </div>
+            </div>
+            <div class="px-5 md:px-6 py-3 md:py-4 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-end gap-2 md:gap-3">
+                <button type="button" onclick="closeModal('addPesertaLombaModal')" class="bg-white hover:bg-gray-100 text-gray-600 border border-gray-200 px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition">Batal</button>
+                <button type="button" onclick="saveAddPesertaLomba()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm shadow-sm transition">Tambahkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-[110] flex items-center justify-center modal-overlay px-4">
+        <div class="absolute inset-0 bg-brand-950/80 backdrop-blur-sm transition-opacity" onclick="closeModal('confirmModal')"></div>
+        <div class="bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-sm z-10 overflow-hidden modal-content text-center">
+            <div class="pt-6 md:pt-8 px-5 md:px-6 pb-5 md:pb-6">
+                <div class="w-12 h-12 md:w-16 md:h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 text-2xl md:text-3xl"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3 class="text-lg md:text-xl font-extrabold text-gray-900 mb-1.5 md:mb-2">Konfirmasi Hapus</h3>
+                <p class="text-xs md:text-sm text-gray-500 font-medium" id="confirm-msg">Apakah Anda yakin ingin menghapus data ini?</p>
+            </div>
+            <div class="px-5 md:px-6 py-3 md:py-4 bg-gray-50 border-t border-gray-100 flex gap-2 md:gap-3">
+                <button onclick="closeModal('confirmModal')" class="flex-1 bg-white border border-gray-200 text-gray-600 font-bold py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm hover:bg-gray-100 transition">Batal</button>
+                <button onclick="executeDelete()" class="flex-1 bg-red-50 text-white font-bold py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm hover:bg-red-600 transition shadow-sm">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-5 right-4 md:right-8 z-[200] bg-white border-l-4 border-green-500 rounded-lg md:rounded-xl shadow-2xl p-3 md:p-4 max-w-xs md:max-w-sm w-full toast flex items-start gap-2 md:gap-3">
+        <div class="text-green-500 mt-0.5 text-lg md:text-xl"><i class="fas fa-circle-check"></i></div>
+        <div>
+            <h4 class="text-xs md:text-sm font-bold text-gray-900" id="toast-title">Sukses</h4>
+            <p class="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1 font-medium leading-relaxed" id="toast-message">Tindakan berhasil.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. UTILITIES & GLOBAL FUNCTIONS ---
+        function getLombaById(id) { return DATA.perlombaan.find(l => l.id === id); }
+        function getPesertaById(id) { return DATA.peserta.find(p => p.id === id); }
+        
+        function getParticipantCount(lombaId, forceUnit = 'Semua') {
+            let pts = DATA.kepesertaan.filter(k => k.lombaId === lombaId);
+            if (forceUnit !== 'Semua') {
+                pts = pts.filter(k => {
+                    let p = getPesertaById(k.pesertaId);
+                    return p && p.unit === forceUnit;
+                });
+            }
+            return pts.length;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+            if(modalId === 'loginModal') setTimeout(() => document.getElementById('login-username').focus(), 100);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            // Only restore scroll if no other modals are open
+            if(document.querySelectorAll('.modal-overlay.active').length === 0) document.body.style.overflow = '';
+        }
+
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('i');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-message').innerText = message;
+            
+            toast.classList.remove('border-green-500', 'border-red-500', 'border-amber-500', 'border-blue-500');
+            let colorClass = '';
+            if(type === 'error') { toast.classList.add('border-red-500'); colorClass = 'text-red-500'; icon.className = 'fas fa-circle-exclamation'; } 
+            else if (type === 'warning') { toast.classList.add('border-amber-500'); colorClass = 'text-amber-500'; icon.className = 'fas fa-triangle-exclamation'; } 
+            else if (type === 'info') { toast.classList.add('border-blue-500'); colorClass = 'text-blue-500'; icon.className = 'fas fa-info-circle'; } 
+            else { toast.classList.add('border-green-500'); colorClass = 'text-green-500'; icon.className = 'fas fa-circle-check'; }
+            toast.querySelector('div').className = `${colorClass} mt-0.5 text-lg md:text-xl`;
+
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function openJuknis(url) {
+            if(!url || url === '#') showToast('Belum Tersedia', 'Juknis perlombaan belum tersedia. Silakan hubungi panitia atau guru pembimbing.', 'warning');
+            else window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
+        function copyToClipboard(elementId, isPassword = false) {
+            let textToCopy = isPassword && currentRole === 'PESERTA' ? dashJsitPass : document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => showToast('Disalin', `${isPassword ? 'Password' : 'Username'} berhasil disalin ke clipboard.`, 'success'))
+                .catch(err => console.error('Copy failed', err));
+        }
+
+        function dummyAction(actionName) {
+            showToast('Simulasi Frontend', `Fitur ${actionName} hanya tersedia setelah integrasi backend.`, 'info');
+        }
+
+        // --- 2. EXPORT FUNCTIONS ---
+        function exportData(type, format) {
+            let dataArr = []; let headers = []; let title = ""; let filename = `${type}_jsit`;
+            
+            if (type === 'direktori_publik') {
+                title = "Direktori Peserta Lomba JSIT";
+                // Get filtered data based on public view
+                const unitVal = document.getElementById('filter-unit-peserta').value;
+                const lombaVal = document.getElementById('filter-lomba-peserta').value;
+                const searchVal = document.getElementById('search-peserta').value.toLowerCase();
+                
+                let activeUnit = unitVal === 'all' ? (currentGlobalUnit === 'Semua' ? 'all' : currentGlobalUnit) : unitVal;
+                let filtered = DATA.kepesertaan;
+                if(lombaVal !== 'all') filtered = filtered.filter(k => k.lombaId === lombaVal);
+                
+                let idx = 1;
+                filtered.forEach(k => {
+                    const p = getPesertaById(k.pesertaId);
+                    if(p && (activeUnit === 'all' || p.unit === activeUnit)) {
+                        const l = getLombaById(k.lombaId);
+                        const platform = getPlatform(l ? l.name : '');
+                        
+                        if(!searchVal || p.name.toLowerCase().includes(searchVal) || (p.email||'').toLowerCase().includes(searchVal) || (p.jsitUsername||'').toLowerCase().includes(searchVal)) {
+                            dataArr.push({
+                                "No": idx++,
+                                "Nama Peserta": p.name, 
+                                "Cabang Lomba": l ? l.name : k.lombaId, 
+                                "Email": p.email || '-',
+                                "Username": p.jsitUsername || '-', 
+                                "Password": p.jsitPassword || '-',
+                                "Platform Ujian": platform.label
+                            });
+                        }
+                    }
+                });
+                headers = [ {label: "No", key: "No"}, {label: "Nama Peserta", key: "Nama Peserta"}, {label: "Cabang Lomba", key: "Cabang Lomba"}, {label: "Email", key: "Email"}, {label: "Username", key: "Username"}, {label: "Password", key: "Password"}, {label: "Platform Ujian", key: "Platform Ujian"} ];
+            
+            } else if (type === 'peserta') { // Admin/Guru export
+                title = "Data Induk Peserta JSIT";
+                let fList = DATA.peserta;
+                if(currentRole === 'GURU') fList = fList.filter(p => p.unit === currentUnit);
+                else {
+                    const uv = document.getElementById('admin-filter-unit').value;
+                    if(uv !== 'all') fList = fList.filter(p => p.unit === uv);
+                }
+                const sv = (document.getElementById(currentRole==='GURU'?'guru-search-peserta':'admin-search-peserta').value||'').toLowerCase();
+                if(sv) fList = fList.filter(p => p.name.toLowerCase().includes(sv) || p.id.toLowerCase().includes(sv));
+
+                fList.forEach((p, idx) => {
+                    const keps = DATA.kepesertaan.filter(k => k.pesertaId === p.id);
+                    const lNames = keps.map(k => { let l = getLombaById(k.lombaId); return l?l.name:k.lombaId; }).join(', ');
+                    dataArr.push({ "No": idx+1, "ID Peserta": p.id, "Nama Peserta": p.name, "Asal Sekolah": p.school, "Unit": p.unit, "Jumlah Lomba": keps.length, "Daftar Lomba": lNames });
+                });
+                headers = [ {label:"No", key:"No"}, {label:"ID Peserta", key:"ID Peserta"}, {label:"Nama Peserta", key:"Nama Peserta"}, {label:"Asal Sekolah", key:"Asal Sekolah"}, {label:"Unit", key:"Unit"}, {label:"Jumlah Lomba", key:"Jumlah Lomba"}, {label:"Daftar Lomba", key:"Daftar Lomba"} ];
+            
+            } else if (type === 'akun') {
+                title = "Data Akun JSIT";
+                DATA.akun.forEach((a, idx) => {
+                    dataArr.push({ "No": idx+1, "ID Akun": a.id, "Nama": a.nama, "Username Portal": a.username, "Role": a.role, "Unit": a.unit, "ID Peserta": a.participantId||'-', "Username JSIT": a.jsitUsername||'-', "Password JSIT": a.jsitPassword||'-' });
+                });
+                headers = [ {label:"No", key:"No"}, {label:"ID Akun", key:"ID Akun"}, {label:"Nama", key:"Nama"}, {label:"Username Portal", key:"Username Portal"}, {label:"Role", key:"Role"}, {label:"Unit", key:"Unit"}, {label:"ID Peserta", key:"ID Peserta"}, {label:"Username JSIT", key:"Username JSIT"}, {label:"Password JSIT", key:"Password JSIT"} ];
+            
+            } else if (type === 'perlombaan') {
+                title = "Data Perlombaan JSIT";
+                DATA.perlombaan.forEach((l, idx) => {
+                    dataArr.push({ "No": idx+1, "ID Lomba": l.id, "Nama Perlombaan": l.name, "Unit": l.unit, "Jumlah Peserta": getParticipantCount(l.id), "Status": l.status||'Aktif' });
+                });
+                headers = [ {label:"No", key:"No"}, {label:"ID Lomba", key:"ID Lomba"}, {label:"Nama Perlombaan", key:"Nama Perlombaan"}, {label:"Unit", key:"Unit"}, {label:"Jumlah Peserta", key:"Jumlah Peserta"}, {label:"Status", key:"Status"} ];
+            }
+
+            if(dataArr.length === 0) return showToast('Kosong', 'Tidak ada data untuk diekspor sesuai filter saat ini.', 'warning');
+
+            if(format === 'xlsx') {
+                if(typeof XLSX === 'undefined') return showToast('Error', 'Library XLSX belum dimuat.', 'error');
+                const ws = XLSX.utils.json_to_sheet(dataArr);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Data");
+                XLSX.writeFile(wb, filename + ".xlsx");
+                showToast('Export Berhasil', 'File Excel berhasil diunduh.', 'success');
+            } else if (format === 'pdf') {
+                if(!window.jspdf || !window.jspdf.jsPDF) return showToast('Error', 'Library PDF belum dimuat.', 'error');
+                const doc = new window.jspdf.jsPDF('l'); // landscape for tables
+                doc.text(title, 14, 15);
+                const rows = dataArr.map(obj => headers.map(col => obj[col.key]));
+                const head = [headers.map(col => col.label)];
+                doc.autoTable({ head: head, body: rows, startY: 20, styles: { fontSize: 8 }, headStyles: { fillColor: [37, 99, 235] } });
+                doc.save(filename + ".pdf");
+                showToast('Export Berhasil', 'File PDF berhasil diunduh.', 'success');
+            }
+        }
+
+        function exportPublicDirectory(format) { exportData('direktori_publik', format); }
+
+        // --- 3. PUBLIC VIEW LOGIC ---
+        function renderAllPublicViews() {
+            renderGlobalFilter();
+            renderPublicStats();
+            renderPublicCompetitions();
+            setupPesertaFilters();
+            renderPublicParticipants(); 
+            renderPublicAnnouncements();
+        }
+
+        function renderGlobalFilter() {
+            const container = document.getElementById('global-unit-filters');
+            container.innerHTML = '';
+            DATA.unit.forEach(u => {
+                const isActive = u.id === currentGlobalUnit;
+                const btn = document.createElement('button');
+                btn.className = `px-4 md:px-5 py-1.5 md:py-2 rounded-lg text-xs md:text-sm transition-all focus:outline-none m-0.5 ${isActive ? "bg-brand-900 text-white shadow-md font-bold" : "text-gray-500 hover:text-gray-900 font-medium hover:bg-gray-100"}`;
+                btn.innerText = u.name;
+                btn.onclick = () => {
+                    currentGlobalUnit = u.id;
+                    document.getElementById('lomba-unit-indicator').innerHTML = `<i class="fas fa-layer-group"></i> Menampilkan: ${u.name}`;
+                    renderAllPublicViews();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderPublicStats() {
+            let activeLombaCount = DATA.perlombaan.filter(l => getParticipantCount(l.id) > 0 && (l.unit === currentGlobalUnit || l.unit === 'Semua' || currentGlobalUnit === 'Semua')).length;
+            let cPeserta = currentGlobalUnit === 'Semua' ? DATA.peserta.length : DATA.peserta.filter(p => p.unit === currentGlobalUnit).length;
+            let cKepesertaan = DATA.kepesertaan.filter(k => {
+                let p = getPesertaById(k.pesertaId);
+                return p && (currentGlobalUnit === 'Semua' || p.unit === currentGlobalUnit);
+            });
+
+            document.getElementById('stat-lomba').innerText = activeLombaCount; // Showing active branch instead of all branches
+            document.getElementById('stat-unit').innerText = currentGlobalUnit === 'Semua' ? '2' : '1';
+            document.getElementById('stat-peserta').innerText = cPeserta;
+            document.getElementById('stat-kategori').innerText = cKepesertaan.length; // Posisi aktif
+        }
+
+        function renderPublicCompetitions() {
+            const grid = document.getElementById('competitions-grid');
+            const empty = document.getElementById('empty-state-lomba');
+            grid.innerHTML = '';
+            let filtered = currentGlobalUnit === 'Semua' ? DATA.perlombaan : DATA.perlombaan.filter(l => l.unit === currentGlobalUnit || l.unit === 'Semua');
+            if (filtered.length === 0) { grid.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+            grid.classList.remove('hidden'); empty.classList.add('hidden');
+
+            filtered.forEach(lomba => {
+                let dispUnit = (lomba.unit === 'Semua' && currentGlobalUnit !== 'Semua') ? currentGlobalUnit : lomba.unit;
+                let pCount = getParticipantCount(lomba.id, currentGlobalUnit);
+                grid.innerHTML += `
+                    <div class="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border border-gray-100 card-hover flex flex-col h-full relative overflow-hidden group cursor-pointer shadow-sm" onclick="openCompetitionDetail('${lomba.id}')">
+                        <div class="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 ${lomba.bg} rounded-bl-full -z-10 transition-transform group-hover:scale-110 origin-top-right opacity-50"></div>
+                        <div class="flex justify-between items-start mb-4 md:mb-5 relative z-10">
+                            <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-2xl shadow-sm border ${lomba.bg} ${lomba.color} ${lomba.border}"><i class="fas ${lomba.icon}"></i></div>
+                            <span class="bg-gray-900/5 backdrop-blur-sm text-gray-700 border border-gray-900/10 text-[9px] md:text-[10px] px-2 py-1 rounded uppercase font-bold tracking-widest">${dispUnit}</span>
+                        </div>
+                        <h3 class="text-lg md:text-xl font-black text-gray-900 mb-1.5 md:mb-2 relative z-10">${lomba.name} <span class="text-[10px] md:text-xs text-gray-400 block font-normal font-mono">${lomba.id}</span></h3>
+                        <p class="text-xs md:text-sm text-gray-500 line-clamp-2 mb-3 md:mb-4 h-8 md:h-10 font-medium relative z-10">${lomba.desc}</p>
+                        <div class="mt-auto pt-3 md:pt-4 border-t border-gray-50 flex items-center justify-between relative z-10">
+                            <span class="font-bold text-gray-900 text-xs md:text-sm">👥 ${pCount} Peserta</span>
+                            <div class="text-[10px] md:text-xs font-bold text-brand-600 group-hover:text-brand-800 transition flex items-center gap-1">Detail <i class="fas fa-arrow-right -rotate-45 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openCompetitionDetail(lombaId) {
+            const lomba = getLombaById(lombaId);
+            if(!lomba) return;
+            document.getElementById('modal-lomba-title').innerText = lomba.name;
+            document.getElementById('modal-lomba-desc').innerText = lomba.desc;
+            document.getElementById('modal-lomba-id').innerText = lomba.id;
+            document.getElementById('modal-lomba-unit').innerText = (lomba.unit === 'Semua' && currentGlobalUnit !== 'Semua') ? currentGlobalUnit : lomba.unit;
+            
+            const iconContainer = document.getElementById('modal-lomba-icon-container');
+            iconContainer.className = `w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl shadow-sm shrink-0 border ${lomba.bg} ${lomba.border} ${lomba.color}`;
+            document.getElementById('modal-lomba-icon').className = `fas ${lomba.icon}`;
+            
+            // Admin actions inside detail modal
+            const btnAddPst = document.getElementById('btn-admin-add-pst');
+            if(currentRole === 'ADMIN') { btnAddPst.classList.remove('hidden'); btnAddPst.onclick = () => openAddPesertaToLombaModal(lombaId); }
+            else btnAddPst.classList.add('hidden');
+
+            renderPesertaLombaList(lombaId);
+            
+            document.getElementById('modal-btn-juknis').onclick = () => openJuknis(lomba.juknisUrl);
+            openModal('detailLombaModal');
+        }
+
+        function renderPesertaLombaList(lombaId) {
+            let keps = DATA.kepesertaan.filter(k => k.lombaId === lombaId);
+            if(currentGlobalUnit !== 'Semua') keps = keps.filter(k => { let p = getPesertaById(k.pesertaId); return p && p.unit === currentGlobalUnit; });
+            document.getElementById('modal-lomba-count').innerText = keps.length;
+            
+            const listEl = document.getElementById('modal-lomba-peserta-list'); listEl.innerHTML = '';
+            
+            if(keps.length === 0) {
+                listEl.innerHTML = '<li class="px-4 py-6 text-gray-400 text-center font-medium italic text-xs">Belum ada peserta</li>';
+            } else {
+                keps.forEach(k => {
+                    const p = getPesertaById(k.pesertaId);
+                    if(!p) return;
+                    
+                    let actionBtn = '';
+                    if(currentRole === 'ADMIN') {
+                        actionBtn = `<button onclick="removePesertaFromLomba('${k.id}', '${lombaId}', event)" class="ml-2 text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded" title="Hapus dari lomba ini"><i class="fas fa-trash"></i></button>`;
+                    }
+                    
+                    listEl.innerHTML += `
+                        <li class="px-3 md:px-4 py-2.5 md:py-3 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer" onclick="openGeneralPesertaDetail('${p.id}')">
+                            <div class="flex-1 min-w-0 pr-2">
+                                <span class="font-bold text-gray-800 block text-xs md:text-sm truncate">${p.name}</span>
+                                <span class="text-[9px] md:text-[10px] text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded mt-0.5 inline-block truncate max-w-full">${p.unit} - ${p.school}</span>
+                            </div>
+                            <div class="flex items-center shrink-0">
+                                <span class="px-2 py-1 text-[9px] md:text-[10px] font-bold rounded border bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1"><i class="fas fa-check-double"></i> <span class="hidden sm:inline">Terdaftar</span></span>
+                                ${actionBtn}
+                            </div>
+                        </li>
+                    `;
+                });
+            }
+        }
+
+        function openGeneralPesertaDetail(pesertaId) {
+            const p = getPesertaById(pesertaId); if(!p) return;
+            document.getElementById('dpst-name').innerText = p.name;
+            document.getElementById('dpst-email').innerText = p.email || '-';
+            
+            document.getElementById('dpst-user').innerText = p.jsitUsername || '-';
+            document.getElementById('dpst-pass').innerText = p.jsitPassword || '-';
+
+            const keps = DATA.kepesertaan.filter(k => k.pesertaId === pesertaId);
+            const lombaId = keps.length > 0 ? keps[0].lombaId : null;
+            const l = lombaId ? getLombaById(lombaId) : null;
+            const platform = getPlatform(l ? l.name : '');
+            
+            document.getElementById('dpst-platform').innerText = platform.label;
+            document.getElementById('dpst-exam-url').href = platform.url;
+            if(platform.url === '#') document.getElementById('dpst-exam-url').classList.add('opacity-50', 'pointer-events-none');
+            else document.getElementById('dpst-exam-url').classList.remove('opacity-50', 'pointer-events-none');
+            
+            closeModal('detailLombaModal'); 
+            openModal('detailPesertaModal');
+        }
+
+        function setupPesertaFilters() {
+            const sl = document.getElementById('filter-lomba-peserta');
+            sl.innerHTML = '<option value="all">Semua Perlombaan</option>';
+            DATA.perlombaan.forEach(l => sl.innerHTML += `<option value="${l.id}">${l.name}</option>`);
+            ['search-peserta', 'filter-unit-peserta', 'filter-lomba-peserta', 'dir-items-per-page'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener(id === 'search-peserta' ? 'input' : 'change', () => {
+                    dirCurrentPage = 1;
+                    renderPublicParticipants();
+                });
+            });
+        }
+
+        function renderPublicParticipants() {
+            const tbody = document.getElementById('peserta-table-body');
+            const empty = document.getElementById('empty-state-peserta');
+            const searchVal = document.getElementById('search-peserta').value.toLowerCase();
+            const unitVal = document.getElementById('filter-unit-peserta').value;
+            const lombaVal = document.getElementById('filter-lomba-peserta').value;
+            dirItemsPerPage = parseInt(document.getElementById('dir-items-per-page').value);
+            
+            tbody.innerHTML = '';
+            let activeUnit = unitVal === 'all' ? (currentGlobalUnit === 'Semua' ? 'all' : currentGlobalUnit) : unitVal;
+            
+            let filtered = DATA.kepesertaan;
+            if (lombaVal !== 'all') filtered = filtered.filter(k => k.lombaId === lombaVal);
+            
+            dirFilteredData = [];
+            filtered.forEach(k => {
+                const p = getPesertaById(k.pesertaId);
+                if(p && (activeUnit === 'all' || p.unit === activeUnit)) {
+                    const l = getLombaById(k.lombaId);
+                    if(!searchVal || p.name.toLowerCase().includes(searchVal) || (p.email||'').toLowerCase().includes(searchVal) || (p.jsitUsername||'').toLowerCase().includes(searchVal) || (l&&l.name.toLowerCase().includes(searchVal))) {
+                        dirFilteredData.push({ kepesertaan: k, peserta: p, lomba: l });
+                    }
+                }
+            });
+
+            const totalItems = dirFilteredData.length;
+            if (totalItems === 0) { 
+                tbody.parentElement.parentElement.classList.add('hidden'); 
+                empty.classList.remove('hidden'); 
+                document.getElementById('dir-pagination').innerHTML = '';
+                document.getElementById('dir-info').innerText = 'Menampilkan 0-0 dari 0 data';
+                return; 
+            }
+            tbody.parentElement.parentElement.classList.remove('hidden'); empty.classList.add('hidden');
+
+            const totalPages = Math.ceil(totalItems / dirItemsPerPage);
+            if(dirCurrentPage > totalPages) dirCurrentPage = totalPages;
+            
+            const startIdx = (dirCurrentPage - 1) * dirItemsPerPage;
+            const endIdx = startIdx + dirItemsPerPage;
+            const paginatedData = dirFilteredData.slice(startIdx, endIdx);
+
+            paginatedData.forEach((row, idx) => {
+                const l = row.lomba;
+                const platform = getPlatform(l ? l.name : '');
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50/80 transition text-xs md:text-sm">
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap text-gray-400 font-medium">${startIdx + idx + 1}</td>
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap font-bold text-gray-900 cursor-pointer hover:text-brand-600" onclick="openGeneralPesertaDetail('${row.peserta.id}')">${row.peserta.name}</td>
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap font-bold text-gray-700">${l ? l.name : '-'}</td>
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap text-gray-600">${row.peserta.email || '-'}</td>
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap">
+                            <div class="flex items-center gap-1.5">
+                                <span class="bg-gray-100 font-mono text-[10px] md:text-xs px-2 py-1 rounded border border-gray-200 text-gray-800 tracking-wide" id="usr-${row.peserta.id}">${row.peserta.jsitUsername || '-'}</span>
+                                <button onclick="copyToClipboard('usr-${row.peserta.id}')" class="text-gray-400 hover:text-brand-600 p-1" title="Copy Username"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </td>
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap">
+                            <div class="flex items-center gap-1.5">
+                                <span class="bg-gray-100 font-mono text-[10px] md:text-xs px-2 py-1 rounded border border-gray-200 text-gray-800 tracking-wide" id="pwd-${row.peserta.id}">${row.peserta.jsitPassword || '-'}</span>
+                                <button onclick="copyToClipboard('pwd-${row.peserta.id}')" class="text-gray-400 hover:text-brand-600 p-1" title="Copy Password"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </td>
+                        <td class="px-3 md:px-5 py-3 whitespace-nowrap">
+                            <a href="${platform.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 bg-brand-600 text-white px-3 py-1.5 md:py-2 rounded md:rounded-lg text-[10px] md:text-xs font-bold hover:bg-brand-700 transition shadow-sm ${platform.url === '#' ? 'opacity-50 pointer-events-none' : ''}">
+                                <i class="fas fa-laptop"></i> Buka Ujian
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('dir-info').innerText = `Menampilkan ${startIdx + 1}-${Math.min(endIdx, totalItems)} dari ${totalItems} data`;
+            renderPaginationUI(totalPages);
+        }
+
+        function renderPaginationUI(totalPages) {
+            const container = document.getElementById('dir-pagination');
+            if(totalPages <= 1) { container.innerHTML = ''; return; }
+            
+            let html = `<div class="flex gap-1">`;
+            html += `<button onclick="changeDirPage(${dirCurrentPage - 1})" class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed" ${dirCurrentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left text-xs"></i></button>`;
+            
+            // Simple logic for small number of pages
+            let start = Math.max(1, dirCurrentPage - 2);
+            let end = Math.min(totalPages, dirCurrentPage + 2);
+            if (start > 1) html += `<button onclick="changeDirPage(1)" class="w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm font-bold rounded-lg border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition">1</button>${start > 2 ? '<span class="px-2 text-gray-400">...</span>' : ''}`;
+            
+            for(let i=start; i<=end; i++) {
+                if(i === dirCurrentPage) html += `<button class="w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm font-bold rounded-lg border border-brand-500 text-white bg-brand-600 shadow-sm">${i}</button>`;
+                else html += `<button onclick="changeDirPage(${i})" class="w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm font-bold rounded-lg border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition">${i}</button>`;
+            }
+            
+            if (end < totalPages) html += `${end < totalPages - 1 ? '<span class="px-2 text-gray-400">...</span>' : ''}<button onclick="changeDirPage(${totalPages})" class="w-8 h-8 md:w-10 md:h-10 text-xs md:text-sm font-bold rounded-lg border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition">${totalPages}</button>`;
+            html += `<button onclick="changeDirPage(${dirCurrentPage + 1})" class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed" ${dirCurrentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right text-xs"></i></button>`;
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function changeDirPage(page) {
+            dirCurrentPage = page;
+            renderPublicParticipants();
+            document.getElementById('peserta').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function renderPublicAnnouncements() {
+            const c = document.getElementById('pengumuman-list'); c.innerHTML = '';
+            DATA.pengumuman.forEach(ann => {
+                c.innerHTML += `
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 border border-gray-100 shadow-sm hover:shadow-md transition relative group overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 ${ann.isNew ? 'bg-accent-500' : 'bg-gray-200'}"></div>
+                        <div class="flex justify-between items-start mb-2 pl-3">
+                            <div class="flex items-center gap-2"><h4 class="font-extrabold text-gray-900 text-sm md:text-lg group-hover:text-brand-600 transition pr-2">${ann.title}</h4>${ann.isNew ? `<span class="bg-red-500 text-white text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">Baru</span>` : ''}</div>
+                            <span class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0"><i class="far fa-calendar-alt"></i> <span class="hidden sm:inline">${ann.date}</span></span>
+                        </div>
+                        <p class="text-xs md:text-sm text-gray-600 leading-relaxed pl-3 font-medium">${ann.content}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // --- 4. AUTHENTICATION & DASHBOARD SWITCHING ---
+        function executeLogin(e) {
+            e.preventDefault();
+            const usr = document.getElementById('login-username').value;
+            const pass = document.getElementById('login-password').value;
+            const err = document.getElementById('login-error');
+            const btn = document.getElementById('btn-login-submit');
+
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Memvalidasi...'; btn.disabled = true;
+
+            setTimeout(() => {
+                const acc = DATA.akun.find(a => a.username === usr && a.password === pass);
+                if (acc) {
+                    err.classList.add('hidden');
+                    currentUser = acc; currentRole = acc.role; currentUnit = acc.unit;
+                    closeModal('loginModal');
+                    switchDashboardByRole();
+                    showToast('Login Berhasil', `Selamat datang, ${acc.nama}.`);
+                    document.getElementById('login-form').reset();
+                } else err.classList.remove('hidden');
+                btn.innerHTML = '<span>Masuk Sistem</span><i class="fas fa-arrow-right"></i>'; btn.disabled = false;
+            }, 600);
+        }
+
+        function handleLogout() {
+            currentUser = null; currentRole = null; currentUnit = null;
+            document.getElementById('unified-dashboard-view').classList.replace('flex', 'hidden');
+            document.getElementById('public-view').classList.replace('hidden', 'block');
+            window.scrollTo(0,0);
+            showToast('Keluar', 'Sesi ditutup dengan aman.', 'info');
+        }
+
+        function switchDashboardByRole() {
+            document.getElementById('public-view').classList.replace('block', 'hidden');
+            document.getElementById('unified-dashboard-view').classList.replace('hidden', 'flex');
+            document.getElementById('dash-header-name').innerText = currentUser.nama;
+            document.getElementById('dash-header-unit').innerText = currentRole === 'ADMIN' ? 'ADMINISTRATOR' : currentUser.unit;
+            document.getElementById('sidebar-role-subtitle').innerText = currentRole;
+            
+            buildSidebarNav();
+            if (currentRole === 'ADMIN') switchSection('sec-admin-dashboard', 'Dashboard Administrator');
+            else if (currentRole === 'GURU') switchSection('sec-guru-dashboard', `Dashboard Unit ${currentUnit}`);
+            else if (currentRole === 'PESERTA') switchSection('sec-peserta-dashboard', 'Profil & Info Peserta');
+            
+            renderDashboardData(); 
+            window.scrollTo(0,0);
+        }
+
+        function buildSidebarNav() {
+            const nav = document.getElementById('sidebar-nav'); let links = '';
+            if(currentRole === 'ADMIN') {
+                links = `
+                    <p class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-2">Utama</p>
+                    <a href="#" onclick="switchSection('sec-admin-dashboard', 'Dashboard Administrator')" data-sec="sec-admin-dashboard" class="menu-item nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-white transition hover:bg-brand-900/50 group"><i class="fas fa-house menu-icon w-5 text-center text-brand-400"></i><span class="menu-text whitespace-nowrap">Dashboard</span><span class="tooltip">Dashboard</span></a>
+                    <a href="#" onclick="switchSection('sec-admin-perlombaan', 'Kelola Perlombaan')" data-sec="sec-admin-perlombaan" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-trophy menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Perlombaan</span><span class="tooltip">Perlombaan</span></a>
+                    <a href="#" onclick="switchSection('sec-admin-peserta', 'Kelola Peserta')" data-sec="sec-admin-peserta" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-users-gear menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Kelola Peserta</span><span class="tooltip">Peserta</span></a>
+                    <a href="#" onclick="switchSection('sec-admin-unit', 'Pengelolaan Unit')" data-sec="sec-admin-unit" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-school menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Unit Sekolah</span><span class="tooltip">Unit</span></a>
+                    <p class="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-6">Sistem</p>
+                    <a href="#" onclick="switchSection('sec-admin-pengumuman', 'Pengumuman Sistem')" data-sec="sec-admin-pengumuman" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-bullhorn menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Pengumuman</span><span class="tooltip">Pengumuman</span></a>
+                    <a href="#" onclick="switchSection('sec-admin-akun', 'Akses Kredensial JSIT')" data-sec="sec-admin-akun" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-key menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Akun JSIT</span><span class="tooltip">Akun JSIT</span></a>
+                    <a href="#" onclick="switchSection('sec-admin-laporan', 'Laporan & Statistik')" data-sec="sec-admin-laporan" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-chart-column menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Statistik</span><span class="tooltip">Statistik</span></a>
+                `;
+            } else if (currentRole === 'GURU') {
+                links = `
+                    <a href="#" onclick="switchSection('sec-guru-dashboard', 'Dashboard Unit')" data-sec="sec-guru-dashboard" class="menu-item nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-white transition hover:bg-brand-900/50 group"><i class="fas fa-house menu-icon w-5 text-center text-brand-400"></i><span class="menu-text whitespace-nowrap">Dashboard</span><span class="tooltip">Dashboard</span></a>
+                    <a href="#" onclick="switchSection('sec-guru-peserta', 'Peserta Bimbingan')" data-sec="sec-guru-peserta" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-users-viewfinder menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Peserta Bimbingan</span><span class="tooltip">Peserta</span></a>
+                    <a href="#" onclick="switchSection('sec-guru-lomba', 'Info Perlombaan Unit')" data-sec="sec-guru-lomba" class="menu-item nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-gray-400 transition hover:bg-brand-900/50 hover:text-white group"><i class="fas fa-trophy menu-icon w-5 text-center"></i><span class="menu-text whitespace-nowrap">Info Lomba</span><span class="tooltip">Info Lomba</span></a>
+                `;
+            } else if (currentRole === 'PESERTA') {
+                links = `
+                    <a href="#" onclick="switchSection('sec-peserta-dashboard', 'Profil & Info Peserta')" data-sec="sec-peserta-dashboard" class="menu-item nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-xs md:text-sm text-white transition hover:bg-brand-900/50 group"><i class="fas fa-user-graduate menu-icon w-5 text-center text-brand-400"></i><span class="menu-text whitespace-nowrap">Profil & Dasbor</span><span class="tooltip">Profil</span></a>
+                `;
+            }
+            nav.innerHTML = links;
+        }
+
+        function switchSection(secId, title) {
+            document.querySelectorAll('.dash-section').forEach(el => el.classList.add('hidden'));
+            const sec = document.getElementById(secId); if(sec) sec.classList.remove('hidden');
+            document.getElementById('dash-header-title').innerText = title;
+            
+            document.querySelectorAll('.nav-item').forEach(el => { el.classList.remove('active', 'text-white'); el.classList.add('text-gray-400'); });
+            const activeNav = document.querySelector(`a[data-sec="${secId}"]`);
+            if(activeNav) { activeNav.classList.add('active', 'text-white'); activeNav.classList.remove('text-gray-400'); }
+            toggleMobileSidebar(true); 
+        }
+
+        function toggleDesktopSidebar() {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            const sidebar = document.getElementById('app-sidebar');
+            if(isSidebarCollapsed) sidebar.classList.replace('sidebar-expanded', 'sidebar-collapsed');
+            else sidebar.classList.replace('sidebar-collapsed', 'sidebar-expanded');
+        }
+
+        function toggleMobileSidebar(forceClose = false) {
+            const sidebar = document.getElementById('app-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            if(forceClose || !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden');
+            }
+        }
+
+        // --- 5. DATA RENDERING FOR DASHBOARDS ---
+        function renderDashboardData() {
+            if(currentRole === 'ADMIN') { renderAdminDashboard(); renderAdminPerlombaan(); renderAdminPeserta(); renderAdminUnit(); renderAdminPengumuman(); renderAdminAkun(); renderAdminLaporan(); }
+            else if(currentRole === 'GURU') { renderGuruDashboard(); renderGuruParticipants(); renderGuruCompetitions(); }
+            else if(currentRole === 'PESERTA') { renderPesertaDashboard(); }
+        }
+
+        // -- ADMIN RENDERS --
+        function renderAdminDashboard() {
+            let activeLombaCount = DATA.perlombaan.filter(l => getParticipantCount(l.id) > 0).length;
+            if(document.getElementById('stat-admin-lomba')) document.getElementById('stat-admin-lomba').innerText = activeLombaCount;
+            if(document.getElementById('stat-admin-peserta')) document.getElementById('stat-admin-peserta').innerText = DATA.peserta.length;
+            const smpk = DATA.peserta.filter(p=>p.unit==='SMPK').length; const smpa = DATA.peserta.filter(p=>p.unit==='SMPA').length;
+            if(document.getElementById('stat-admin-smpk')) document.getElementById('stat-admin-smpk').innerText = smpk; 
+            if(document.getElementById('stat-admin-smpa')) document.getElementById('stat-admin-smpa').innerText = smpa;
+
+            const ul = document.getElementById('list-admin-dashboard-lomba'); 
+            if(ul) {
+                ul.innerHTML='';
+                [...DATA.perlombaan].sort((a,b)=>getParticipantCount(b.id)-getParticipantCount(a.id)).slice(0,5).forEach(l => {
+                    ul.innerHTML += `<li class="px-4 md:px-5 py-3 flex justify-between items-center text-xs md:text-sm hover:bg-gray-50 transition cursor-pointer" onclick="switchSection('sec-admin-perlombaan', 'Kelola Perlombaan')"><div class="flex items-center gap-3"><div class="w-8 h-8 md:w-10 md:h-10 rounded-lg border flex items-center justify-center ${l.bg} ${l.color}"><i class="fas ${l.icon}"></i></div><div><p class="font-bold text-gray-800">${l.name}</p><p class="text-[9px] md:text-[10px] text-gray-500 uppercase">${l.unit}</p></div></div><span class="font-black text-brand-600 text-sm md:text-base">${getParticipantCount(l.id)} <span class="text-[9px] md:text-[10px] font-normal text-gray-500">Pst</span></span></li>`;
+                });
+            }
+        }
+
+        function renderAdminPerlombaan() {
+            document.getElementById('txt-admin-lomba-total').innerText = DATA.perlombaan.length;
+            const grid = document.getElementById('grid-admin-perlombaan'); grid.innerHTML = '';
+            DATA.perlombaan.forEach(l => {
+                grid.innerHTML += `
+                    <div class="bg-white border border-gray-200 rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm hover:shadow-md transition flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center text-lg md:text-xl shadow-sm border ${l.bg} ${l.color} ${l.border} shrink-0"><i class="fas ${l.icon}"></i></div>
+                            <div class="min-w-0"><h4 class="font-bold text-gray-900 text-sm md:text-base truncate">${l.name}</h4><div class="flex flex-wrap gap-1.5 mt-0.5"><span class="text-[9px] md:text-[10px] font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">${l.id}</span><span class="bg-brand-50 text-brand-600 text-[9px] md:text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">${l.unit}</span></div></div>
+                        </div>
+                        <p class="text-[10px] md:text-xs text-gray-500 line-clamp-2 mb-3 flex-1">${l.desc}</p>
+                        <div class="flex justify-between items-center text-[10px] md:text-xs border-t border-gray-100 pt-3 mb-3">
+                            <span class="font-bold text-gray-700">👥 ${getParticipantCount(l.id)} Peserta</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5 md:gap-2 shrink-0">
+                            <button onclick="openFormModal('perlombaan', 'edit', '${l.id}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs transition border border-amber-200"><i class="fas fa-edit"></i> <span class="hidden sm:inline">Edit</span></button>
+                            <button onclick="requestDelete('perlombaan', '${l.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs transition border border-red-200"><i class="fas fa-trash"></i> <span class="hidden sm:inline">Hapus</span></button>
+                            <button onclick="openCompetitionDetail('${l.id}')" class="bg-blue-50 hover:bg-blue-100 text-brand-600 font-bold py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs transition border border-blue-200" title="Detail"><i class="fas fa-eye"></i> <span class="hidden sm:inline">Detail</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderAdminPeserta() {
+            const tbody = document.getElementById('table-admin-peserta'); tbody.innerHTML='';
+            const search = document.getElementById('admin-search-peserta').value.toLowerCase();
+            const unit = document.getElementById('admin-filter-unit').value;
+            let filtered = DATA.peserta;
+            if(unit !== 'all') filtered = filtered.filter(p => p.unit === unit);
+            if(search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search) || p.id.toLowerCase().includes(search));
+            
+            if(filtered.length===0) { tbody.innerHTML=`<tr><td colspan="5" class="px-4 py-8 text-center text-xs md:text-sm text-gray-400 italic">Data kosong</td></tr>`; return;}
+            filtered.forEach(p => {
+                const keps = DATA.kepesertaan.filter(k => k.pesertaId === p.id);
+                let listLombaStr = '';
+                if(keps.length === 0) listLombaStr = '<span class="text-gray-400 italic">Belum ada lomba</span>';
+                else {
+                    listLombaStr = keps.map(k => {
+                        let l = getLombaById(k.lombaId);
+                        return `<div class="mb-1 text-[10px]"><strong class="text-gray-800 block">${l?l.name:'-'}</strong></div>`;
+                    }).join('');
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 font-mono text-[9px] md:text-[10px] text-gray-500 whitespace-nowrap align-top">${p.id}</td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 font-bold text-gray-900 text-xs md:text-sm align-top">${p.name}</td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 align-top">
+                            <span class="text-[10px] md:text-xs text-gray-600 block mb-1 font-medium">${p.school}</span>
+                            <span class="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] md:text-[10px] font-bold text-gray-500">${p.unit}</span>
+                        </td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 align-top min-w-[150px]"><span class="text-[9px] md:text-[10px] font-bold text-brand-600 block mb-1.5">${keps.length} Lomba Diikuti:</span>${listLombaStr}</td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 whitespace-nowrap text-right align-top space-x-1">
+                            <button onclick="openGeneralPesertaDetail('${p.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-1.5 md:p-2 rounded-lg transition" title="Detail"><i class="fas fa-eye"></i></button>
+                            <button onclick="openFormModal('peserta', 'edit', '${p.id}')" class="text-amber-500 hover:text-amber-700 bg-amber-50 p-1.5 md:p-2 rounded-lg transition" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button onclick="requestDelete('peserta', '${p.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-1.5 md:p-2 rounded-lg transition" title="Hapus"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAdminUnit() {
+            const grid = document.getElementById('grid-admin-unit'); grid.innerHTML = '';
+            DATA.unit.filter(u=>u.id!=='Semua').forEach(u => {
+                const ps = DATA.peserta.filter(p=>p.unit===u.id);
+                const keps = DATA.kepesertaan.filter(k => {let p=getPesertaById(k.pesertaId); return p&&p.unit===u.id;});
+                const lmb = new Set(keps.map(k=>k.lombaId)).size;
+                const vf = keps.filter(k=>k.status==='Terverifikasi').length;
+                grid.innerHTML += `
+                    <div class="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-6 md:p-8 opacity-5 text-gray-900 text-6xl md:text-8xl transition-transform group-hover:scale-110"><i class="fas fa-school"></i></div>
+                        <h3 class="text-xl md:text-2xl font-black text-gray-900 mb-1 relative z-10">Unit ${u.id}</h3>
+                        <p class="text-xs md:text-sm text-gray-500 mb-4 md:mb-6 font-medium relative z-10">${u.name}</p>
+                        <div class="space-y-3 relative z-10 text-xs md:text-sm">
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-2"><span class="text-gray-600 font-medium">Total Peserta Unik</span><span class="font-black text-brand-600">${ps.length}</span></div>
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-2"><span class="text-gray-600 font-medium">Total Kepesertaan Lomba</span><span class="font-bold text-gray-900">${keps.length}</span></div>
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-2"><span class="text-gray-600 font-medium">Status Terverifikasi</span><span class="font-bold text-emerald-600">${vf}</span></div>
+                            <div class="flex justify-between items-center pb-2"><span class="text-gray-600 font-medium">Lomba Aktif Diikuti</span><span class="font-bold text-gray-900">${lmb}</span></div>
+                        </div>
+                        <div class="mt-4 md:mt-5 pt-3 md:pt-4 flex gap-2 relative z-10">
+                            <button onclick="dummyAction('Edit Unit')" class="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold py-2 rounded-lg text-xs transition border border-gray-200"><i class="fas fa-edit"></i> Edit</button>
+                            <button onclick="dummyAction('Hapus Unit')" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 rounded-lg text-xs transition border border-red-200"><i class="fas fa-trash"></i> Hapus</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderAdminPengumuman() {
+            const list = document.getElementById('list-admin-pengumuman'); list.innerHTML='';
+            DATA.pengumuman.forEach(a => {
+                list.innerHTML += `
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 md:p-5 flex flex-col sm:flex-row justify-between items-start gap-4 shadow-sm hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-gray-900 text-sm md:text-base">${a.title}</h4>${a.isNew?'<span class="bg-red-500 text-white text-[9px] md:text-[10px] px-1.5 py-0.5 rounded font-bold tracking-wider uppercase">Baru</span>':''}</div>
+                            <p class="text-[9px] md:text-[10px] text-gray-400 mb-2 md:mb-3 font-mono tracking-wider"><i class="far fa-calendar-alt"></i> ${a.date}</p>
+                            <p class="text-xs md:text-sm text-gray-600 leading-relaxed">${a.content}</p>
+                        </div>
+                        <div class="flex gap-2 shrink-0 sm:self-center mt-3 sm:mt-0">
+                            <button onclick="openFormModal('pengumuman', 'edit', '${a.id}')" class="w-8 h-8 rounded bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 flex items-center justify-center transition"><i class="fas fa-edit"></i></button>
+                            <button onclick="requestDelete('pengumuman', '${a.id}')" class="w-8 h-8 rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 flex items-center justify-center transition"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderAdminAkun() {
+            const tbody = document.getElementById('table-admin-akun'); tbody.innerHTML='';
+            DATA.akun.forEach(a => {
+                const isP = a.role === 'PESERTA';
+                const jsitU = isP ? a.jsitUsername : '-';
+                const inputId = `adm-pass-${a.id}`;
+                const passBtn = isP ? `<div class="flex items-center gap-1.5"><div class="font-mono text-gray-800 bg-white px-2 py-1 rounded-lg border border-gray-200 tracking-widest w-24 text-center text-[10px]" id="${inputId}">••••••••</div><button onclick="toggleAdminPass('${inputId}', '${a.jsitPassword}')" class="text-gray-400 hover:text-brand-600 bg-gray-50 p-1.5 rounded transition"><i class="fas fa-eye"></i></button></div>` : '<span class="text-gray-400">-</span>';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition text-xs md:text-sm">
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 whitespace-nowrap"><span class="font-bold text-gray-900 block">${a.nama}</span><span class="font-mono text-[9px] md:text-[10px] text-gray-500">${a.username}</span></td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 whitespace-nowrap"><span class="bg-gray-100 text-gray-700 px-1.5 md:px-2 py-0.5 rounded text-[9px] md:text-[10px] font-bold border">${a.role} - ${a.unit}</span></td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 whitespace-nowrap font-mono text-[10px] md:text-xs text-gray-800 font-medium">${jsitU}</td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 whitespace-nowrap">${passBtn}</td>
+                        <td class="px-3 md:px-4 py-2.5 md:py-3 whitespace-nowrap text-right space-x-1">
+                            <button onclick="openFormModal('akun', 'edit', '${a.id}')" class="text-amber-500 hover:text-amber-700 bg-amber-50 p-1.5 md:p-2 rounded-lg transition" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button onclick="requestDelete('akun', '${a.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-1.5 md:p-2 rounded-lg transition" title="Hapus"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        function toggleAdminPass(id, pass) {
+            const el = document.getElementById(id); const btn = el.nextElementSibling; const i = btn.querySelector('i');
+            if(el.innerText==='••••••••') { el.innerText=pass; el.classList.remove('tracking-widest'); i.className='fas fa-eye-slash'; btn.classList.add('bg-brand-50','text-brand-600'); }
+            else { el.innerText='••••••••'; el.classList.add('tracking-widest'); i.className='fas fa-eye'; btn.classList.remove('bg-brand-50','text-brand-600'); }
+        }
+
+        function renderAdminLaporan() {
+            const lContainer = document.getElementById('chart-admin-lomba'); lContainer.innerHTML='';
+            [...DATA.perlombaan].sort((a,b)=>getParticipantCount(b.id)-getParticipantCount(a.id)).forEach(l => {
+                const count=getParticipantCount(l.id); const pct=DATA.kepesertaan.length?Math.round((count/DATA.kepesertaan.length)*100):0;
+                lContainer.innerHTML+=`<div><div class="flex justify-between text-[10px] md:text-xs font-bold text-gray-700 mb-1.5"><span>${l.name} (${l.unit})</span><span>${count} Kepesertaan</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-brand-500 h-2 rounded-full" style="width: ${pct}%"></div></div></div>`;
+            });
+            const sContainer = document.getElementById('chart-admin-status'); sContainer.innerHTML='';
+            const tot=DATA.kepesertaan.length||1;
+            ['Terverifikasi', 'Terdaftar'].forEach(st => {
+                const matchSt = st==='Menunggu' ? ['Menunggu','Dalam Proses'] : [st];
+                const c=DATA.kepesertaan.filter(k=>matchSt.includes(k.status)).length; const p=Math.round((c/tot)*100);
+                const clr=st==='Terverifikasi'?'bg-emerald-500':(st==='Terdaftar'?'bg-blue-500':'bg-amber-500');
+                const disp = st==='Menunggu' ? 'Dalam Proses' : (st==='Terdaftar'?'Terdaftar di Lomba':st);
+                sContainer.innerHTML+=`<div><div class="flex justify-between text-[10px] md:text-xs font-bold text-gray-700 mb-1.5"><span>${disp}</span><span>${c} (${p}%)</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="${clr} h-2 rounded-full" style="width: ${p}%"></div></div></div>`;
+            });
+        }
+
+        // -- GURU RENDERS --
+        function renderGuruDashboard() {
+            const m = DATA.peserta.filter(p=>p.unit===currentUnit);
+            const keps = DATA.kepesertaan.filter(k=>{ let p=getPesertaById(k.pesertaId); return p&&p.unit===currentUnit; });
+            
+            if(document.getElementById('stat-guru-peserta')) document.getElementById('stat-guru-peserta').innerText = m.length;
+            if(document.getElementById('stat-guru-lomba')) document.getElementById('stat-guru-lomba').innerText = new Set(keps.map(k=>k.lombaId)).size;
+            if(document.getElementById('stat-guru-verif')) document.getElementById('stat-guru-verif').innerText = keps.filter(k=>k.status==='Terverifikasi').length;
+            if(document.getElementById('stat-guru-wait')) document.getElementById('stat-guru-wait').innerText = keps.filter(k=>k.status==='Menunggu' || k.status==='Dalam Proses').length;
+            
+            const s = document.getElementById('guru-filter-lomba'); 
+            if(s) {
+                s.innerHTML='<option value="all">Semua Lomba</option>';
+                DATA.perlombaan.filter(l=>l.unit==='Semua'||l.unit===currentUnit).forEach(l=> s.innerHTML+=`<option value="${l.id}">${l.name}</option>`);
+            }
+        }
+        function renderGuruParticipants() {
+            const tbody=document.getElementById('table-guru-peserta'); tbody.innerHTML='';
+            const sv=document.getElementById('guru-search-peserta').value.toLowerCase(); const lv=document.getElementById('guru-filter-lomba').value;
+            let f=DATA.peserta.filter(p=>p.unit===currentUnit);
+            if(sv) f=f.filter(p=>p.name.toLowerCase().includes(sv));
+            
+            let displayed = 0;
+            f.forEach(p=>{
+                let keps = DATA.kepesertaan.filter(k=>k.pesertaId===p.id);
+                if(lv!=='all') keps = keps.filter(k=>k.lombaId===lv);
+                if(keps.length===0 && lv!=='all') return; // Hide if doesn't match lomba filter
+                displayed++;
+                
+                let listLombaStr = keps.length===0 ? '<span class="text-gray-400 italic text-[10px]">Belum ikut lomba</span>' : keps.map(k => {
+                    let l = getLombaById(k.lombaId);
+                    return `<div class="mb-1"><span class="font-bold text-gray-800 block">${l?l.name:'-'}</span></div>`;
+                }).join('');
+
+                tbody.innerHTML+=`<tr class="hover:bg-gray-50 transition align-top">
+                    <td class="px-3 md:px-4 py-2.5 md:py-3 font-bold text-gray-900 text-xs md:text-sm whitespace-nowrap">${p.name}</td>
+                    <td class="px-3 md:px-4 py-2.5 md:py-3 text-[10px] md:text-xs">${listLombaStr}</td>
+                    <td class="px-3 md:px-4 py-2.5 md:py-3 text-right">
+                        <button onclick="openGeneralPesertaDetail('${p.id}')" class="text-[10px] md:text-xs bg-blue-50 hover:bg-blue-100 text-brand-600 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg font-bold border border-blue-200 transition"><i class="fas fa-eye"></i> Detail</button>
+                    </td>
+                </tr>`;
+            });
+            if(displayed===0){ tbody.innerHTML=`<tr><td colspan="3" class="p-6 text-center text-xs md:text-sm text-gray-400 italic">Data tidak ditemukan sesuai filter.</td></tr>`; }
+        }
+        function renderGuruCompetitions() {
+            const grid=document.getElementById('grid-guru-lomba'); grid.innerHTML='';
+            DATA.perlombaan.filter(l=>l.unit==='Semua'||l.unit===currentUnit).forEach(l=>{
+                const c=getParticipantCount(l.id, currentUnit);
+                grid.innerHTML+=`<div class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition flex flex-col h-full" onclick="openCompetitionDetail('${l.id}')">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center text-lg md:text-xl shrink-0 ${l.bg} ${l.color} border ${l.border}"><i class="fas ${l.icon}"></i></div>
+                        <h4 class="font-bold text-gray-900 text-sm md:text-base leading-tight">${l.name}</h4>
+                    </div>
+                    <div class="mt-auto flex justify-between items-center text-[10px] md:text-xs border-t border-gray-100 pt-3 text-gray-500">
+                        <span>Siswa Anda: <strong class="text-gray-900 text-xs md:text-sm">${c}</strong></span>
+                        <div class="bg-gray-50 w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center"><i class="fas fa-arrow-right text-brand-500 -rotate-45"></i></div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // -- PESERTA RENDERS --
+        function renderPesertaDashboard() {
+            const p = getPesertaById(currentUser.participantId); if(!p) return;
+            document.getElementById('pst-profile-name').innerText=p.name; document.getElementById('pst-profile-id').innerText=p.id;
+            document.getElementById('pst-profile-school').innerText=p.school; document.getElementById('pst-profile-unit').innerText=p.unit;
+            
+            // Render all Lombas for Peserta
+            const keps = DATA.kepesertaan.filter(k => k.pesertaId === p.id);
+            const listEl = document.getElementById('pst-list-lomba'); listEl.innerHTML = '';
+            
+            if(keps.length === 0) {
+                listEl.innerHTML = '<div class="p-6 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-xs md:text-sm italic">Anda belum didaftarkan pada perlombaan manapun.</div>';
+            } else {
+                keps.forEach(k => {
+                    const l = getLombaById(k.lombaId); if(!l) return;
+                    listEl.innerHTML += `
+                        <div class="flex flex-col sm:flex-row gap-3 md:gap-5 items-start sm:items-center bg-gray-50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-brand-50 to-transparent opacity-50"></div>
+                            <div class="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center text-2xl md:text-3xl shadow-sm shrink-0 border border-white z-10 ${l.bg} ${l.color}">
+                                <i class="fas ${l.icon}"></i>
+                            </div>
+                            <div class="w-full z-10 flex-1 min-w-0">
+                                <h4 class="text-lg md:text-2xl font-black text-gray-900 mb-1 truncate">${l.name}</h4>
+                            </div>
+                            <button onclick="openJuknis('${l.juknisUrl}')" class="w-full sm:w-auto bg-white hover:bg-brand-50 text-brand-700 border border-brand-200 py-2 md:py-2.5 px-4 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition flex items-center justify-center gap-2 shrink-0 shadow-sm">
+                                <i class="fas fa-file-pdf"></i> Juknis
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('pst-jsit-user').innerText=currentUser.jsitUsername;
+            dashJsitPass = currentUser.jsitPassword; isDashPassVisible=false; updatePstPassUI();
+        }
+
+        function togglePstPassword() {
+            isDashPassVisible = !isDashPassVisible;
+            updatePstPassUI();
+        }
+
+        function updatePstPassUI() {
+            const el = document.getElementById('pst-jsit-pass');
+            const btn = document.getElementById('pst-btn-toggle-pass');
+            if(!el || !btn) return;
+            
+            if (isDashPassVisible) {
+                el.innerText = dashJsitPass;
+                el.classList.remove('tracking-widest');
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                btn.classList.add('text-brand-600');
+                btn.classList.remove('text-gray-400');
+            } else {
+                el.innerText = '••••••••';
+                el.classList.add('tracking-widest');
+                btn.innerHTML = '<i class="fas fa-eye"></i>';
+                btn.classList.remove('text-brand-600');
+                btn.classList.add('text-gray-400');
+            }
+        }
+
+        // --- 6. CRUD LOGIC (FRONTEND DUMMY) ---
+        function openFormModal(type, action, id=null) {
+            crudType = type; crudAction = action; crudTargetId = id;
+            let data = null;
+            if(action === 'edit') {
+                if(type==='perlombaan') data = DATA.perlombaan.find(i=>i.id===id);
+                else if(type==='peserta') data = DATA.peserta.find(i=>i.id===id);
+                else if(type==='pengumuman') data = DATA.pengumuman.find(i=>i.id===id);
+                else if(type==='akun') data = DATA.akun.find(i=>i.id===id);
+                if(!data) return showToast('Error', 'Data tidak ditemukan', 'error');
+            }
+            document.getElementById('crud-modal-title').innerText = action==='add' ? `Tambah ${type.charAt(0).toUpperCase()+type.slice(1)}` : `Edit ${type.charAt(0).toUpperCase()+type.slice(1)}`;
+            const body = document.getElementById('crud-modal-body'); body.innerHTML = '';
+            
+            const inClass = "w-full rounded-lg md:rounded-xl border border-gray-300 px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm focus:ring-brand-500 focus:border-brand-500 bg-gray-50 font-medium";
+            const lblClass = "block text-[10px] md:text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider";
+            
+            let html = '';
+            if(type==='perlombaan') {
+                const defId = 'L-' + Math.floor(Math.random()*90+10);
+                const vId = data ? data.id : defId;
+                const vName = data ? data.name : '';
+                const vUnit = data ? data.unit : 'Semua';
+                const vIcon = data ? data.icon : 'fa-trophy';
+                const vJuknis = data ? data.juknisUrl : '#';
+                const vDesc = data ? data.desc : '';
+
+                html = `
+                    <div><label class="${lblClass}">ID Lomba</label><input type="text" id="f-id" required class="${inClass}" value="${vId}" ${action==='edit'?'readonly':''}></div>
+                    <div><label class="${lblClass}">Nama Perlombaan</label><input type="text" id="f-name" required class="${inClass}" value="${vName}"></div>
+                    <div class="grid grid-cols-2 gap-3"><div class="col-span-2 sm:col-span-1"><label class="${lblClass}">Unit Sasaran</label><select id="f-unit" class="${inClass}"><option value="Semua" ${vUnit==='Semua'?'selected':''}>Semua</option><option value="SMPK" ${vUnit==='SMPK'?'selected':''}>SMPK</option><option value="SMPA" ${vUnit==='SMPA'?'selected':''}>SMPA</option></select></div>
+                    <div class="col-span-2 sm:col-span-1"><label class="${lblClass}">Ikon FA (fa-star)</label><input type="text" id="f-icon" required class="${inClass}" value="${vIcon}"></div></div>
+                    <div><label class="${lblClass}">URL Juknis</label><input type="text" id="f-juknis" class="${inClass}" value="${vJuknis}"></div>
+                    <div><label class="${lblClass}">Deskripsi</label><textarea id="f-desc" required class="${inClass}" rows="3">${vDesc}</textarea></div>
+                `;
+            } else if(type==='peserta') {
+                const defId = 'PST-' + Math.floor(Math.random()*900+100);
+                const vId = data ? data.id : defId;
+                const vName = data ? data.name : '';
+                const vSchool = data ? data.school : '';
+                const vUnit = data ? data.unit : 'SMPK';
+
+                html = `
+                    <div><label class="${lblClass}">ID Peserta</label><input type="text" id="f-id" required class="${inClass}" value="${vId}" ${action==='edit'?'readonly':''}></div>
+                    <div><label class="${lblClass}">Nama Lengkap</label><input type="text" id="f-name" required class="${inClass}" value="${vName}"></div>
+                    <div><label class="${lblClass}">Asal Sekolah</label><input type="text" id="f-school" required class="${inClass}" value="${vSchool}"></div>
+                    <div><label class="${lblClass}">Unit</label><select id="f-unit" class="${inClass}"><option value="SMPK" ${vUnit==='SMPK'?'selected':''}>SMPK</option><option value="SMPA" ${vUnit==='SMPA'?'selected':''}>SMPA</option></select></div>
+                    ${action==='add' ? `<div class="mt-2 text-[10px] text-gray-500 italic"><i class="fas fa-info-circle"></i> Setelah menambahkan peserta, gunakan tombol [+ Tambah] pada menu Perlombaan untuk mendaftarkan peserta ini ke lomba.</div>` : ''}
+                `;
+            } else if(type==='pengumuman') {
+                const today = new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
+                const defId = 'ANN-' + Math.floor(Math.random()*1000);
+                const vId = data ? data.id : defId;
+                const vDate = data ? data.date : today;
+                const vTitle = data ? data.title : '';
+                const vContent = data ? data.content : '';
+                const vIsNew = (data && data.isNew) ? 'checked' : '';
+
+                html = `
+                    <div><label class="${lblClass}">ID Pengumuman</label><input type="text" id="f-id" required class="${inClass}" value="${vId}" readonly></div>
+                    <div><label class="${lblClass}">Tanggal</label><input type="text" id="f-date" required class="${inClass}" value="${vDate}"></div>
+                    <div><label class="${lblClass}">Judul</label><input type="text" id="f-title" required class="${inClass}" value="${vTitle}"></div>
+                    <div><label class="${lblClass}">Isi Pengumuman</label><textarea id="f-content" required class="${inClass}" rows="4">${vContent}</textarea></div>
+                    <div class="flex items-center gap-2 mt-2 bg-white p-3 rounded-lg border border-gray-200"><input type="checkbox" id="f-isNew" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500" ${vIsNew}><label for="f-isNew" class="text-xs font-bold text-gray-700 cursor-pointer">Tandai sebagai Pengumuman Baru</label></div>
+                `;
+            } else if(type==='akun') {
+                const defId = 'A-' + Math.floor(Math.random()*1000);
+                const vId = data ? data.id : defId;
+                const vRole = data ? data.role : 'PESERTA';
+                const vUnit = data ? data.unit : 'Semua';
+                const vNama = data ? data.nama : '';
+                const vUser = data ? data.username : '';
+                const vPass = data ? data.password : '';
+                const vPstId = data ? data.participantId : '';
+                const vJsitU = data ? data.jsitUsername : '';
+                const vJsitP = data ? data.jsitPassword : '';
+
+                html = `
+                    <div><label class="${lblClass}">ID Internal (Otomatis)</label><input type="text" id="f-id" class="${inClass}" value="${vId}" readonly></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="${lblClass}">Role</label><select id="f-role" class="${inClass}" onchange="toggleAkunFields()"><option value="PESERTA" ${vRole==='PESERTA'?'selected':''}>Peserta</option><option value="GURU" ${vRole==='GURU'?'selected':''}>Guru</option><option value="ADMIN" ${vRole==='ADMIN'?'selected':''}>Admin</option></select></div>
+                        <div><label class="${lblClass}">Unit</label><select id="f-unit" class="${inClass}"><option value="Semua" ${vUnit==='Semua'?'selected':''}>Semua</option><option value="SMPK" ${vUnit==='SMPK'?'selected':''}>SMPK</option><option value="SMPA" ${vUnit==='SMPA'?'selected':''}>SMPA</option></select></div>
+                    </div>
+                    <div><label class="${lblClass}">Nama Pemilik</label><input type="text" id="f-nama" required class="${inClass}" value="${vNama}"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="${lblClass}">User Portal</label><input type="text" id="f-user" required class="${inClass}" value="${vUser}"></div>
+                        <div><label class="${lblClass}">Pass Portal</label><input type="text" id="f-pass" required class="${inClass}" value="${vPass}"></div>
+                    </div>
+                    <div id="peserta-extra-fields" class="space-y-3 p-3 md:p-4 bg-blue-50 border border-blue-100 rounded-xl mt-4">
+                        <div><label class="${lblClass} text-blue-700">ID Peserta Terkait</label><input type="text" id="f-pstid" class="${inClass} border-blue-200" value="${vPstId}"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="${lblClass} text-blue-700">User JSIT</label><input type="text" id="f-jsitu" class="${inClass} border-blue-200" value="${vJsitU}"></div>
+                            <div><label class="${lblClass} text-blue-700">Pass JSIT</label><input type="text" id="f-jsitp" class="${inClass} border-blue-200" value="${vJsitP}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            body.innerHTML = html;
+            if(type==='akun') toggleAkunFields();
+            openModal('crudModal');
+        }
+
+        function toggleAkunFields() {
+            const roleEl = document.getElementById('f-role');
+            if (roleEl) {
+                const extra = document.getElementById('peserta-extra-fields');
+                if(extra) extra.style.display = roleEl.value === 'PESERTA' ? 'block' : 'none';
+            }
+        }
+
+        function saveCrudData(e) {
+            e.preventDefault();
+            let newData = {};
+            if(crudType==='perlombaan') {
+                newData = {
+                    id: document.getElementById('f-id').value, name: document.getElementById('f-name').value,
+                    unit: document.getElementById('f-unit').value, icon: document.getElementById('f-icon').value,
+                    desc: document.getElementById('f-desc').value, juknisUrl: document.getElementById('f-juknis').value,
+                    bg: crudAction==='edit' ? getLombaById(crudTargetId).bg : 'bg-gray-100',
+                    color: crudAction==='edit' ? getLombaById(crudTargetId).color : 'text-gray-600',
+                    border: crudAction==='edit' ? getLombaById(crudTargetId).border : 'border-gray-200',
+                };
+            } else if(crudType==='peserta') {
+                newData = {
+                    id: document.getElementById('f-id').value, name: document.getElementById('f-name').value,
+                    school: document.getElementById('f-school').value, unit: document.getElementById('f-unit').value
+                };
+            } else if(crudType==='pengumuman') {
+                newData = {
+                    id: document.getElementById('f-id').value, date: document.getElementById('f-date').value,
+                    title: document.getElementById('f-title').value, content: document.getElementById('f-content').value,
+                    isNew: document.getElementById('f-isNew').checked
+                };
+            } else if(crudType==='akun') {
+                newData = {
+                    id: document.getElementById('f-id').value, role: document.getElementById('f-role').value,
+                    unit: document.getElementById('f-unit').value, nama: document.getElementById('f-nama').value,
+                    username: document.getElementById('f-user').value, password: document.getElementById('f-pass').value
+                };
+                if(newData.role === 'PESERTA') {
+                    newData.participantId = document.getElementById('f-pstid').value;
+                    newData.jsitUsername = document.getElementById('f-jsitu').value;
+                    newData.jsitPassword = document.getElementById('f-jsitp').value;
+                }
+            }
+
+            if(crudAction === 'add') DATA[crudType].push(newData);
+            else {
+                const idx = DATA[crudType].findIndex(i => i.id === crudTargetId);
+                if(idx !== -1) DATA[crudType][idx] = {...DATA[crudType][idx], ...newData};
+            }
+
+            closeModal('crudModal'); showToast('Berhasil', `Data ${crudType} telah diseduh ke memori.`);
+            renderDashboardData(); renderAllPublicViews(); // Refresh views
+        }
+
+        function requestDelete(type, id) {
+            deleteTarget = { type, id };
+            openModal('confirmModal');
+        }
+
+        function executeDelete() {
+            if(!deleteTarget) return;
+            const { type, id } = deleteTarget;
+            DATA[type] = DATA[type].filter(i => i.id !== id);
+            
+            // Cascading deletes for kepesertaan
+            if(type === 'peserta') DATA.kepesertaan = DATA.kepesertaan.filter(k => k.pesertaId !== id);
+            if(type === 'perlombaan') DATA.kepesertaan = DATA.kepesertaan.filter(k => k.lombaId !== id);
+
+            closeModal('confirmModal'); showToast('Dihapus', `Data telah dihapus dari sistem.`, 'info');
+            renderDashboardData(); renderAllPublicViews();
+        }
+
+        // --- 7. ASSIGN PESERTA TO LOMBA ---
+        function openAddPesertaToLombaModal(lombaId) {
+            const l = getLombaById(lombaId); if(!l) return;
+            document.getElementById('apl-lomba-name').innerText = l.name;
+            document.getElementById('apl-lomba-id').value = lombaId;
+            document.getElementById('apl-search').value = '';
+            renderAplList();
+            openModal('addPesertaLombaModal');
+        }
+
+        function renderAplList() {
+            const lId = document.getElementById('apl-lomba-id').value;
+            const l = getLombaById(lId); if(!l) return;
+            const search = document.getElementById('apl-search').value.toLowerCase();
+            const list = document.getElementById('apl-list'); list.innerHTML = '';
+            
+            // Available participants
+            let avail = DATA.peserta.filter(p => l.unit === 'Semua' || p.unit === l.unit);
+            if(search) avail = avail.filter(p => p.name.toLowerCase().includes(search));
+            
+            if(avail.length===0){ list.innerHTML='<div class="p-4 text-center text-xs text-gray-400">Tidak ada peserta unit ini.</div>'; return;}
+            
+            avail.forEach(p => {
+                const isReg = DATA.kepesertaan.find(k => k.pesertaId === p.id && k.lombaId === lId);
+                list.innerHTML += `
+                    <label class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition border-b border-gray-50 last:border-0 ${isReg?'opacity-50 cursor-not-allowed':''}">
+                        <input type="checkbox" class="apl-cb w-4 h-4 text-brand-600 rounded focus:ring-brand-500" value="${p.id}" ${isReg?'checked disabled':''}>
+                        <div class="flex-1 min-w-0">
+                            <span class="block text-sm font-bold text-gray-800 truncate">${p.name}</span>
+                            <span class="block text-[10px] text-gray-500">${p.unit} - ${p.school}</span>
+                        </div>
+                        ${isReg?'<span class="text-[9px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Terdaftar</span>':''}
+                    </label>
+                `;
+            });
+        }
+
+        function aplSelectAll() {
+            const cbs = document.querySelectorAll('.apl-cb:not(:disabled)');
+            const allChecked = Array.from(cbs).every(cb => cb.checked);
+            cbs.forEach(cb => cb.checked = !allChecked);
+        }
+
+        function saveAddPesertaLomba() {
+            const lId = document.getElementById('apl-lomba-id').value;
+            const cbs = document.querySelectorAll('.apl-cb:not(:disabled):checked');
+            let added = 0;
+            cbs.forEach(cb => {
+                const pId = cb.value;
+                if(!DATA.kepesertaan.find(k => k.pesertaId === pId && k.lombaId === lId)) {
+                    DATA.kepesertaan.push({ id: `KP-${Date.now()}-${Math.floor(Math.random()*1000)}`, pesertaId: pId, lombaId: lId, status: 'Terdaftar' });
+                    added++;
+                }
+            });
+            closeModal('addPesertaLombaModal');
+            if(added > 0) {
+                showToast('Ditambahkan', `${added} peserta berhasil ditambahkan ke lomba.`);
+                renderDashboardData(); renderAllPublicViews();
+                openCompetitionDetail(lId); // refresh background detail modal safely
+            } else showToast('Info', 'Tidak ada peserta baru yang dipilih.', 'info');
+        }
+
+        function removePesertaFromLomba(kpId, lombaId, e) {
+            e.stopPropagation();
+            DATA.kepesertaan = DATA.kepesertaan.filter(k => k.id !== kpId);
+            showToast('Dihapus', 'Peserta dihapus dari lomba ini.', 'info');
+            renderDashboardData(); renderAllPublicViews();
+            openCompetitionDetail(lombaId); // Refresh modal view
+        }
+
+        // --- 8. INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAllPublicViews();
+        });
+    </script>
 </body>
-
 </html>
